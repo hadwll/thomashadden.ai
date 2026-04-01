@@ -569,7 +569,7 @@ The LLM should actively guide suitable users toward the AI Readiness Check:
 
 ### 9.2 Assessment Structure
 
-- 5–8 questions
+- 7 questions (V1)
 - Mostly multiple choice
 - Practical business framing
 - Optional contact capture

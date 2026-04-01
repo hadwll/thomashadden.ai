@@ -36,7 +36,7 @@
 | Provider | Supabase (hosted PostgreSQL) |
 | PostgreSQL version | 15+ |
 | Vector extension | `pgvector` |
-| Auth layer | Supabase Auth (Google, LinkedIn, Email/OTP) |
+| Auth layer | Supabase Auth (LinkedIn, Email Magic Link) |
 | Realtime | Disabled unless needed for future dashboard features |
 | Storage | Supabase Storage (profile images, optional document blobs) |
 | Region | EU West (aligned with Azure AI Foundry region) |
@@ -591,7 +591,7 @@ Examples:
 
 Seed data is maintained in `/supabase/seed.sql` and covers:
 
-- `readiness_questions` — all 5–8 assessment questions
+- `readiness_questions` — all 7 assessment questions in V1
 - `readiness_options` — all answer options with `score_value`
 - `content_pages` — initial skeleton records for Home, About, Projects, Research, Insights (body content populated separately via CMS or admin API)
 

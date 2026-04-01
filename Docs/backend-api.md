@@ -66,12 +66,14 @@ The API is the single communication layer between the frontend and all backend s
 | Environment | Base URL |
 |-------------|----------|
 | Production | `https://api.thomashadden.ai/v1` |
-| Staging | `https://api-staging.thomashadden.ai/v1` |
-| Local development | `http://localhost:3001/v1` |
+| Staging (not used in V1) | `https://api-staging.thomashadden.ai/v1` |
+| Local development (contract namespace) | `http://localhost:3001/v1` |
 
 ### 2.2 Versioning
 
 All endpoints are prefixed with `/v1`. When breaking changes are introduced a new version prefix `/v2` will be introduced. Old versions will be supported for a deprecation window before removal. Version deprecation will be communicated in `backend-roadmap.md`.
+
+**V1 runtime mapping note:** In V1, the browser calls same-app Next.js route handlers under `/api/*` (for example, `/api/llm/query`). Those route handlers implement the `/v1/*` contract defined in this specification. `/v1/*` remains the logical/public contract namespace, and no separate local API server is required for frontend integration in V1.
 
 ---
 
@@ -473,6 +475,8 @@ Create a new assessment session. Called once when the visitor starts the readine
 }
 ```
 
+**Duplicate `sessionToken` handling (idempotent):** If `POST /readiness-check/session` is called again with a `sessionToken` that already exists for an active session, return `200` with the existing session shape (`sessionToken`, `status`, `totalQuestions`) and do not create a duplicate session row.
+
 ### 9.3 GET /readiness-check/session/:token
 
 Retrieve the state of an existing session. Used for abandonment detection and resume flow.
@@ -652,12 +656,13 @@ Get the current authenticated user's profile.
     "name": "Jane Smith",
     "provider": "linkedin",
     "jobTitle": "Operations Manager",
-    "company": "Acme Engineering Ltd",
     "createdAt": "2026-03-15T10:00:00Z",
     "readinessResults": ["res_abc123"]
   }
 }
 ```
+
+`jobTitle` is optional and may be projected on a best-effort basis from `user_profiles.linkedin_headline`. `company` is not part of the V1 response shape.
 
 ### 10.2 DELETE /users/me
 
@@ -708,7 +713,7 @@ Submit the contact form.
 | `email` | string | Yes | Sender's email address. |
 | `subject` | string | No | Subject line. Max 200 chars. |
 | `message` | string | Yes | Message body. Max 2000 chars. |
-| `type` | string | No | Enquiry type. Values: `business_enquiry`, `research_collaboration`, `technical_enquiry`, `general` |
+| `type` | string | Yes | Enquiry type. Values: `business_enquiry`, `research_collaboration`, `technical_enquiry`, `general` |
 | `source` | string | No | Where form was submitted from. |
 | `honeypot` | string | Yes | Must be empty. Spam protection field. |
 

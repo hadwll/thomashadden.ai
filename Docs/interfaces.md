@@ -130,7 +130,7 @@ Two environments exist. No separate staging environment in V1.
 
 Base API URL pattern: `https://api.thomashadden.ai/v1` (production), `http://localhost:3001/v1` (local).
 
-**Note:** backend-api.md specifies `localhost:3001` for local dev, but the Next.js app runs on port 3000 and API routes are at `/api/*` within the same app. The `localhost:3001` base URL may be for a future standalone API. In V1, the frontend calls `/api/llm/query` (relative), not `localhost:3001/v1/llm/query`. **Flagged as Assumption — see §14.**
+**V1 mapping note (settled):** In V1, the frontend calls same-app relative `/api/*` routes (for example, `/api/llm/query`). These route handlers implement the `/v1/*` contract namespace documented in `backend-api.md`.
 
 ---
 
@@ -415,14 +415,13 @@ interface UserProfile {
   email: string;
   name: string;
   provider: 'linkedin' | 'email';
-  jobTitle?: string;       // Inference: mapped from linkedin_headline. See §14.
-  company?: string;        // Inference: not present in user_profiles schema. See §14.
+  jobTitle?: string;       // Best-effort projection from linkedin_headline.
   createdAt: string;
   readinessResults: string[];
 }
 ```
 
-**Conflict:** backend-api.md §10.1 returns `jobTitle` and `company` fields, but `backend-database.md` §6.1 defines `user_profiles` with `linkedin_headline` and `linkedin_location` — not `jobTitle` or `company`. The API may be projecting/transforming these fields, or the schema needs updating. **See §15.**
+`jobTitle` is an optional API projection from `linkedin_headline`. `company` is excluded from the V1 API shape because there is no guaranteed source column in the current schema.
 
 ### 5.10 Contact Submission
 
@@ -433,7 +432,7 @@ interface ContactSubmission {
   email: string;          // Required. Valid email.
   subject?: string;       // Optional. Max 200 chars.
   message: string;        // Required. 20–2000 chars.
-  type?: 'business_enquiry' | 'research_collaboration' | 'technical_enquiry' | 'general';
+  type: 'business_enquiry' | 'research_collaboration' | 'technical_enquiry' | 'general';
   source?: string;        // 'contact_page' | 'readiness_check' | 'llm'
   honeypot: string;       // Required field. Must be empty string.
 }
@@ -531,7 +530,7 @@ interface ContentSection {
 | **Response** | `200` — `{ sessionToken, status: "in_progress", totalQuestions: 7 }` |
 | **Error codes** | `422 VALIDATION_ERROR` (invalid UUID) |
 | **Side effects** | Row created in `readiness_sessions` with `status = 'in_progress'` |
-| **Idempotency** | Not specified. Repeated calls with same token: *Unresolved* — see §14. |
+| **Idempotency** | Repeated calls with the same `sessionToken` while the session exists return `200` with the existing session shape and create no duplicate row. |
 
 ### 6.4 GET /v1/readiness-check/session/:token
 
@@ -610,7 +609,7 @@ interface ContentSection {
 | **Purpose** | Submit contact form |
 | **Auth** | Public (rate-limited: 3 req/hr/IP, spam-protected) |
 | **Request body** | See §5.10 `ContactSubmission` |
-| **Validation** | `name`: 2–100 chars. `email`: valid format. `message`: 20–2000 chars. `subject`: max 200 chars. `type`: must be valid enum value if provided. `honeypot`: must be empty. |
+| **Validation** | `name`: 2–100 chars. `email`: valid format. `message`: 20–2000 chars. `subject`: max 200 chars. `type`: required and must be a valid enum value. `honeypot`: must be empty. |
 | **Spam handling** | If `honeypot` is non-empty: silently return success response, store nothing, send no emails. |
 | **Response** | `200` — See §5.10 `ContactSubmissionResponse` |
 | **Error codes** | `422 VALIDATION_ERROR` (with field-level details), `429 RATE_LIMITED`, `500 INTERNAL_ERROR` |
@@ -1173,7 +1172,7 @@ RAG re-ingestion is triggered automatically post-deploy via `POST /api/rag/inges
 | Contact notification/auto-reply | backend-contact.md §6, §7 | Confirmed | Per-enquiry-type templates |
 | GET /content/:page | backend-api.md §13.1 | Confirmed | |
 | Content caching | backend-api.md §13.1, frontend-interface.md §12.6 | Confirmed | 60s max-age, ISR aligned |
-| User profile model | backend-api.md §10.1, backend-database.md §6.1 | **Conflicted** | API returns jobTitle/company; DB has linkedin_headline/linkedin_location |
+| User profile model | backend-api.md §10.1, backend-database.md §6.1 | Confirmed | `jobTitle?` is best-effort projection from `linkedin_headline`; `company` omitted in V1 |
 | Contact field naming | backend-api.md §11.1, backend-database.md §7.3 | Confirmed | API `type` → DB `enquiry_type` (mapping in API layer) |
 | Auth methods | backend-auth.md §2 | Confirmed | LinkedIn + Email Magic Link |
 | Auth gate flow | backend-auth.md §3, backend-readiness-check.md §8, frontend-interface.md §6.8–6.10 | Confirmed | All three aligned |
@@ -1188,11 +1187,11 @@ RAG re-ingestion is triggered automatically post-deploy via `POST /api/rag/inges
 | Analytics events | backend-api.md §12.1 | Confirmed | 9 event types |
 | Error codes | backend-api.md §6 | Confirmed | 11 codes defined |
 | Database schema | backend-database.md §3–7 | Confirmed | 13 tables |
-| question_count (7 in V1) | backend-readiness-check.md §1.2 | Confirmed | golden-truth says "5–8" (broader range) |
+| question_count (7 in V1) | backend-readiness-check.md §1.2 | Confirmed | Frontend-facing wording is 7 questions in V1 |
 | `type` field in contact request | backend-api.md §11.1 | Confirmed | Named `type`, not `enquiry_type` |
 | `honeypot` field required | backend-api.md §11.1 | Confirmed | "Must be empty" |
 | Nav height | golden-truth §5.6 (56–64px) vs frontend-interface.md §4.1 (60px) | Inferred | Minor discrepancy, non-blocking |
-| API base URL vs Next.js routes | backend-api.md §2.1, frontend-interface.md §1.5 | **Conflicted** | See §15 |
+| API base URL vs Next.js routes | backend-api.md §2.1, frontend-interface.md §1.5 | Confirmed | V1 runtime uses same-app `/api/*`; handlers implement `/v1/*` contract namespace |
 
 ---
 
@@ -1200,63 +1199,19 @@ RAG re-ingestion is triggered automatically post-deploy via `POST /api/rag/inges
 
 | # | Question | Impact | Source |
 |---|----------|--------|--------|
-| OQ-1 | What happens when `POST /readiness-check/session` is called with the same `sessionToken` twice? Is it idempotent (return existing session) or does it create a duplicate? | Session creation reliability | backend-api.md §9.2 — not specified |
-| OQ-2 | Does the frontend call `/api/llm/query` (Next.js relative route) or `https://api.thomashadden.ai/v1/llm/query`? backend-api.md defines `/v1/` prefixed paths, but the V1 app is a single Next.js app with API routes at `/api/*`. | Endpoint routing | backend-api.md §2.1, frontend-interface.md §5.3, backend-infrastructure.md §3.5 |
 | OQ-3 | The `backend-rag.md` file is referenced but not present. What is the full RAG retrieval contract? | RAG integration completeness | Multiple specs reference it |
 | OQ-4 | The `backend-analytics.md` file is referenced but not present. What tables store analytics events? Is there a dedicated analytics schema? | Analytics implementation | backend-api.md §12 |
 | OQ-5 | The `backend-compliance.md` file is referenced but not present. How is account deletion (DELETE /users/me) actually implemented? What data is purged? | GDPR compliance | backend-api.md §10.2 |
 | OQ-6 | `READINESS_SESSION_EXPIRY_HOURS` is defined as an env var (default 24), but the frontend hardcodes a 24-hour check in client-side JavaScript. Should the frontend read this from an API response instead? | Staleness check consistency | backend-readiness-check.md §13, frontend-interface.md §6.3 |
 | OQ-7 | How does the frontend know the active `READINESS_QUESTION_VERSION`? If questions change (via migration + version bump), does the frontend need to invalidate cached question sets? | Question versioning | backend-readiness-check.md §13 |
-| OQ-8 | `contact_submissions.enquiry_type` is `NOT NULL` in the DB schema, but `type` is marked optional in the API request. What is the default if omitted? | Validation gap | backend-api.md §11.1 vs backend-database.md §7.3 |
 | OQ-9 | Where is the `readiness_contact_leads` insert triggered? backend-database.md defines the table, backend-contact.md §8.2 says it's "reserved for leads captured directly on the result screen before the visitor navigates to the contact form." No endpoint writes to it. | Missing write path | backend-database.md §7.2, backend-contact.md §8.2 |
 | OQ-10 | `readiness_sessions` has `contact_email` and `contact_name` columns. No endpoint populates these. Are they used? | Unused schema columns | backend-database.md §5.1 |
 
 ---
 
-## 15. Conflicts Requiring Resolution
+## 15. Residual Conflicts Requiring Resolution
 
-### Conflict 1: User Profile API Response vs Database Schema
-
-| Aspect | Detail |
-|--------|--------|
-| **Topic** | `GET /users/me` response fields |
-| **Source A** | backend-api.md §10.1 returns `jobTitle`, `company` |
-| **Source B** | backend-database.md §6.1 defines `user_profiles` with `linkedin_headline`, `linkedin_location` — no `jobTitle` or `company` columns |
-| **Why it matters** | Frontend consuming the profile API will expect fields that may not exist in the database |
-| **Recommendation** | Either: (a) backend-api.md is aspirational and should be updated to match the actual DB schema (`linkedin_headline`, `linkedin_location`), or (b) the API layer transforms `linkedin_headline` → `jobTitle`, in which case document this mapping explicitly. Option (a) is more likely — update the API spec. |
-
-### Conflict 2: API Base URL vs Next.js API Routes
-
-| Aspect | Detail |
-|--------|--------|
-| **Topic** | How the frontend calls backend endpoints |
-| **Source A** | backend-api.md §2.1 defines base URL `https://api.thomashadden.ai/v1` with paths like `/llm/query` |
-| **Source B** | frontend-interface.md §5.3 calls `fetch('/api/llm/query')` — relative path, no `/v1` prefix |
-| **Source C** | backend-infrastructure.md §3.5 states "The API is served from the same Next.js application under `/api/*` routes" |
-| **Why it matters** | Endpoint paths must match between frontend fetch calls and backend route handlers |
-| **Recommendation** | In V1, the frontend uses `/api/llm/query` (Next.js API route). The `/v1/` prefix from backend-api.md is the canonical external API contract — the Next.js route handlers internally map to this. Document the mapping explicitly: frontend calls `/api/llm/query` → Next.js route handler → backend logic implements `/v1/llm/query` contract. The `api.thomashadden.ai` CNAME exists for future API extraction. |
-
-### Conflict 3: Question Count — "5–8" vs "7"
-
-| Aspect | Detail |
-|--------|--------|
-| **Topic** | Number of readiness check questions |
-| **Source A** | golden-truth-frontend-spec.md §9.2: "5–8 questions" |
-| **Source B** | backend-readiness-check.md §1.2: "7 questions" (explicit, with all 7 defined) |
-| **Why it matters** | Frontend progress bar, session logic, and scoring all depend on exact count |
-| **Recommendation** | 7 questions is the V1 implementation. golden-truth-frontend-spec.md used a broader range during design. The backend spec is authoritative. Update golden-truth if maintained. |
-
-### Conflict 4: database.md Auth Layer Reference
-
-| Aspect | Detail |
-|--------|--------|
-| **Topic** | Auth layer listing in backend-database.md §1.1 |
-| **Source A** | backend-database.md §1.1 lists auth methods as "Google, LinkedIn, Email/OTP" |
-| **Source B** | backend-auth.md §1.3 explicitly excludes Google OAuth from V1 |
-| **Why it matters** | Google OAuth configuration should not be set up or tested |
-| **Recommendation** | Update backend-database.md §1.1 to remove Google reference. V1 auth is LinkedIn + Email Magic Link only. |
-
-### Conflict 5: Honeypot Field Name
+### Conflict 1: Honeypot Field Name
 
 | Aspect | Detail |
 |--------|--------|
@@ -1279,23 +1234,17 @@ RAG re-ingestion is triggered automatically post-deploy via `POST /api/rag/inges
 
 ### 16.2 Specs to Amend
 
-- `backend-api.md` §10.1 — reconcile `UserProfile` response with actual database columns (resolve Conflict 1)
-- `backend-database.md` §1.1 — remove Google OAuth reference (resolve Conflict 4)
-- `golden-truth-frontend-spec.md` §9.2 — update question count from "5–8" to "7" if maintaining spec
-- `backend-api.md` §2.1 — add explicit note about `/api/*` route mapping in V1 (resolve Conflict 2)
+- None required for the settled V1 alignment decisions in this patch set.
 
 ### 16.3 Interfaces to Clarify
 
-- Session creation idempotency for `POST /readiness-check/session` (OQ-1)
 - `readiness_contact_leads` write path — no endpoint currently writes to this table (OQ-9)
-- `contact_submissions.enquiry_type` NOT NULL vs optional `type` in API request — define default (OQ-8)
 - `contact_email` and `contact_name` columns on `readiness_sessions` — clarify usage or remove (OQ-10)
 
 ### 16.4 Test Cases to Derive
 
 Based on this contract, the following test areas need coverage beyond what `thomashadden-ai-test-plan.md` already defines:
 
-- Session creation with duplicate token (OQ-1)
 - `error.details` field-level mapping for 422 responses (§10.3 — currently Inferred)
 - Content endpoint ETag / 304 behaviour
 - Magic link re-send flow (expired link → re-request)
