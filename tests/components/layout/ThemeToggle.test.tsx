@@ -55,7 +55,7 @@ describe('ThemeToggle', () => {
 
     renderThemeToggle();
 
-    expect(matchMedia).toHaveBeenCalledWith('(prefers-color-scheme: light)');
+    expect(matchMedia).toHaveBeenCalledWith('(prefers-color-scheme: dark)');
 
     await waitFor(() => {
       expect(document.documentElement).not.toHaveClass('dark');
