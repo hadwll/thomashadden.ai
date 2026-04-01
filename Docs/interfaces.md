@@ -130,7 +130,7 @@ Two environments exist. No separate staging environment in V1.
 
 Base API URL pattern: `https://api.thomashadden.ai/v1` (production), `http://localhost:3001/v1` (local).
 
-**V1 mapping note (settled):** In V1, the frontend calls same-app relative `/api/*` routes (for example, `/api/llm/query`). These route handlers implement the `/v1/*` contract namespace documented in `backend-api.md`.
+**V1 mapping note (settled):** In V1, the frontend calls same-app relative `/api/*` routes (for example, `/api/llm/query`). These same-app Next.js route handlers are the concrete V1 runtime surface and implement the `/v1/*` logical/public contract namespace documented in `backend-api.md`. No separate local API server is required for frontend integration in V1.
 
 ---
 
@@ -1209,7 +1209,7 @@ RAG re-ingestion is triggered automatically post-deploy via `POST /api/rag/inges
 
 ---
 
-## 15. Residual Conflicts Requiring Resolution
+## 15. Conflict Register
 
 ### Conflict 1: Honeypot Field Name
 
@@ -1221,6 +1221,17 @@ RAG re-ingestion is triggered automatically post-deploy via `POST /api/rag/inges
 | **Source C** | frontend-interface.md §8.4: DOM name is `website`, API field is `honeypot` |
 | **Why it matters** | Frontend must map DOM field `website` to API field `honeypot` |
 | **Recommendation** | Not a true conflict — this is intentional (DOM name `website` is a decoy for bots, API field `honeypot` is the contract name). Document the mapping explicitly. |
+
+### Conflict 2: API Base URL vs Next.js API Routes (Resolved Contradiction)
+
+| Aspect | Detail |
+|--------|--------|
+| **Topic** | `/v1/*` contract namespace vs `/api/*` runtime integration surface |
+| **Source A** | `backend-api.md` §2.1 base URL table documents `https://api.thomashadden.ai/v1` and `http://localhost:3001/v1` as contract namespace references |
+| **Source B** | System and infrastructure specs define a single Next.js runtime where browser requests go to same-app route handlers under `/api/*` |
+| **Why it mattered** | Without a settled mapping, frontend work could incorrectly assume a required split runtime or a required local `localhost:3001` dependency during V1 integration |
+| **Resolution** | In V1, frontend code calls `/api/...` relative routes. These Next.js route handlers implement the `/v1/...` contract described in `backend-api.md`. The external `api.thomashadden.ai` namespace is reserved for possible future extraction and is not a required runtime dependency for the V1 browser app. |
+| **Status** | Settled for V1 runtime contract lock (`SPR-01-01`) |
 
 ---
 

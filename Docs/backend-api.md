@@ -73,7 +73,7 @@ The API is the single communication layer between the frontend and all backend s
 
 All endpoints are prefixed with `/v1`. When breaking changes are introduced a new version prefix `/v2` will be introduced. Old versions will be supported for a deprecation window before removal. Version deprecation will be communicated in `backend-roadmap.md`.
 
-**V1 runtime mapping note:** In V1, the browser calls same-app Next.js route handlers under `/api/*` (for example, `/api/llm/query`). Those route handlers implement the `/v1/*` contract defined in this specification. `/v1/*` remains the logical/public contract namespace, and no separate local API server is required for frontend integration in V1.
+**V1 runtime mapping note:** In V1, browser clients call same-app relative `/api/*` routes handled by Next.js route handlers (for example, `/api/llm/query`). Those same-app route handlers are the concrete V1 runtime surface and implement the `/v1/*` contract defined in this specification. `/v1/*` remains the logical/public contract namespace. No separate local API server is required for frontend integration in V1.
 
 ---
 
