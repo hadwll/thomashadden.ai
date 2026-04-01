@@ -9,7 +9,6 @@ import ProjectsPage from '@/app/projects/page';
 import ReadinessPage from '@/app/readiness/page';
 import ReadinessResultPage from '@/app/readiness/result/page';
 import ResearchPage from '@/app/research/page';
-import { PageShell } from '@/components/layout/PageShell';
 
 type RouteCase = {
   route: string;
@@ -35,25 +34,17 @@ const ROUTE_CASES: RouteCase[] = [
   { route: '/cookies', heading: 'Cookie Policy', Component: CookiesPage }
 ];
 
-function renderRouteInShell(Component: RouteCase['Component'], hideNav = false) {
-  return render(
-    <PageShell hideNav={hideNav}>
-      <Component />
-    </PageShell>
-  );
-}
-
 describe('placeholder routes', () => {
   it.each(ROUTE_CASES)('renders $route inside PageShell without crashing', ({ Component, hideNav }) => {
     expect(() => {
-      renderRouteInShell(Component, hideNav);
+      render(<Component />);
     }).not.toThrow();
   });
 
   it.each(ROUTE_CASES)(
     'renders $route with stable placeholder heading and marker',
-    ({ Component, heading, hideNav }) => {
-      renderRouteInShell(Component, hideNav);
+    ({ Component, heading }) => {
+      render(<Component />);
 
       expect(screen.getByRole('heading', { level: 1, name: heading })).toBeInTheDocument();
       expect(screen.getByText('Placeholder route for SPR-01 bootstrap.')).toBeInTheDocument();
@@ -61,7 +52,8 @@ describe('placeholder routes', () => {
   );
 
   it.each(ROUTE_CASES)('uses shell chrome according to hideNav for $route', ({ Component, hideNav }) => {
-    renderRouteInShell(Component, hideNav);
+    render(<Component />);
+    expect(screen.getByRole('banner')).toBeInTheDocument();
 
     if (hideNav) {
       expect(screen.queryByRole('navigation', { name: 'Main navigation' })).not.toBeInTheDocument();

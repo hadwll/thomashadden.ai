@@ -1,5 +1,10 @@
+import { PageShell } from '@/components/layout/PageShell';
 import { RoutePlaceholder } from '@/components/layout/RoutePlaceholder';
 
 export default function HomePage() {
-  return <RoutePlaceholder title="Home" route="/" />;
+  return (
+    <PageShell>
+      <RoutePlaceholder title="Home" route="/" />
+    </PageShell>
+  );
 }

@@ -1,5 +1,10 @@
+import { PageShell } from '@/components/layout/PageShell';
 import { RoutePlaceholder } from '@/components/layout/RoutePlaceholder';
 
 export default function ContactPage() {
-  return <RoutePlaceholder title="Contact" route="/contact" />;
+  return (
+    <PageShell>
+      <RoutePlaceholder title="Contact" route="/contact" />
+    </PageShell>
+  );
 }

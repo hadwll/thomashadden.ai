@@ -6,7 +6,7 @@ type RoutePlaceholderProps = {
 
 export function RoutePlaceholder({ title, route, note }: RoutePlaceholderProps) {
   return (
-    <main className="mx-auto flex min-h-[70vh] w-full max-w-content items-center px-4 py-12 sm:px-6 lg:px-8">
+    <div className="mx-auto flex min-h-[70vh] w-full max-w-content items-center px-4 py-12 sm:px-6 lg:px-8">
       <section
         aria-label={`${title} placeholder`}
         className="w-full rounded-content border border-border-default bg-bg-surface p-6 shadow-card sm:p-10"
@@ -18,6 +18,6 @@ export function RoutePlaceholder({ title, route, note }: RoutePlaceholderProps) 
           {note ?? 'Page shell composition and live content wiring will land in later tickets.'}
         </p>
       </section>
-    </main>
+    </div>
   );
 }
