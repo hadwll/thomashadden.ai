@@ -1,6 +1,7 @@
 'use client';
 
 import {
+  createElement,
   createContext,
   useCallback,
   useContext,
@@ -77,7 +78,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     [theme, setTheme, toggleTheme]
   );
 
-  return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
+  return createElement(ThemeContext.Provider, { value }, children);
 }
 
 export function useTheme(): ThemeContextValue {
