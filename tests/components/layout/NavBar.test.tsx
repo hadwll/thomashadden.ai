@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import { NavBar } from '@/components/layout/NavBar';
 
 const DESKTOP_NAV_LINKS = ['Home', 'About', 'Projects', 'Research', 'Insights', 'Contact'] as const;
@@ -18,6 +18,15 @@ describe('NavBar', () => {
     }
 
     expect(screen.getByRole('button', { name: /ask thomas ai/i })).toBeInTheDocument();
+  });
+
+  it('renders a dedicated brand mark beside the Thomas Hadden wordmark', () => {
+    render(<NavBar currentPath="/" />);
+
+    const nav = screen.getByRole('navigation', { name: 'Main navigation' });
+
+    expect(within(nav).getByTestId('brand-mark')).toBeInTheDocument();
+    expect(within(nav).getByRole('link', { name: 'Thomas Hadden' })).toBeInTheDocument();
   });
 
   it('marks the active route link with aria-current based on currentPath', () => {

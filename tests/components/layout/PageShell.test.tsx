@@ -25,6 +25,21 @@ describe('PageShell', () => {
     expect(screen.getByRole('navigation', { name: 'Mobile navigation' })).toBeInTheDocument();
   });
 
+  it('keeps mobile shell content wrapped with compact spacing hooks', () => {
+    render(
+      <PageShell>
+        <RoutePlaceholder title="Contact" route="/contact" />
+      </PageShell>
+    );
+
+    const shellMain = screen.getByTestId('shell-main');
+    const contentWrapper = screen.getByTestId('shell-main-content');
+
+    expect(shellMain).toBeInTheDocument();
+    expect(contentWrapper).toBeInTheDocument();
+    expect(shellMain).toContainElement(contentWrapper);
+  });
+
   it('omits NavBar and MobileNav when hideNav is true', () => {
     render(
       <PageShell hideNav>

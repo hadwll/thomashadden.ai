@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { BrandMark } from '@/components/layout/BrandMark';
 
 type NavBarProps = {
   currentPath: string;
@@ -30,13 +31,17 @@ export function NavBar({ currentPath }: NavBarProps) {
   return (
     <nav
       aria-label="Main navigation"
-      className="hidden h-[60px] items-center justify-between border-b border-border-default bg-bg-surface/90 px-6 backdrop-blur lg:flex"
+      className="hidden h-[62px] items-center justify-between border-b border-border-default bg-bg-surface/90 px-6 backdrop-blur lg:flex"
     >
-      <Link href="/" className="shrink-0 text-sm font-semibold text-text-primary no-underline">
-        Thomas Hadden
+      <Link
+        href="/"
+        className="inline-flex shrink-0 items-center gap-2.5 text-base font-semibold text-text-primary no-underline"
+      >
+        <BrandMark className="h-7 w-7" />
+        <span>Thomas Hadden</span>
       </Link>
 
-      <div className="flex items-center gap-5">
+      <div className="flex items-center gap-6">
         {NAV_ITEMS.map((item) => {
           const isActive = isActivePath(currentPath, item.href);
 
@@ -45,8 +50,8 @@ export function NavBar({ currentPath }: NavBarProps) {
               key={item.href}
               href={item.href}
               aria-current={isActive ? 'page' : undefined}
-              className={`text-sm font-medium no-underline transition-colors duration-normal ${
-                isActive ? 'text-accent-primary' : 'text-text-secondary hover:text-accent-primary'
+              className={`text-[15px] font-semibold no-underline transition-colors duration-normal ${
+                isActive ? 'text-accent-primary' : 'text-text-secondary hover:text-text-primary'
               }`}
             >
               {item.label}

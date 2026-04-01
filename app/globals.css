@@ -83,3 +83,12 @@ html.dark {
     color: var(--text-primary);
   }
 }
+
+@media (max-width: 1023px) {
+  .shell-main-content > div {
+    min-height: auto;
+    align-items: flex-start;
+    padding-top: 0.75rem;
+    padding-bottom: 1.5rem;
+  }
+}

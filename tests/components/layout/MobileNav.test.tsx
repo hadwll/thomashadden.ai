@@ -23,6 +23,18 @@ describe('MobileNav', () => {
     }
   });
 
+  it('renders an icon above each mobile nav label', () => {
+    render(<MobileNav currentPath="/" />);
+
+    const nav = screen.getByRole('navigation', { name: 'Mobile navigation' });
+
+    for (const itemName of MOBILE_ITEMS) {
+      const link = within(nav).getByRole('link', { name: itemName });
+      expect(within(link).getByTestId('mobile-nav-icon')).toBeInTheDocument();
+      expect(within(link).getByText(itemName)).toBeInTheDocument();
+    }
+  });
+
   it('does not include About in mobile bottom navigation', () => {
     render(<MobileNav currentPath="/" />);
 

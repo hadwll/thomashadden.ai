@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import { MobileHeader } from '@/components/layout/MobileHeader';
 
 describe('MobileHeader', () => {
@@ -12,6 +12,15 @@ describe('MobileHeader', () => {
     render(<MobileHeader currentPath="/" />);
 
     expect(screen.getByText(/thomas hadden/i)).toBeInTheDocument();
+  });
+
+  it('renders a brand mark beside the wordmark', () => {
+    render(<MobileHeader currentPath="/" />);
+
+    const header = screen.getByRole('banner');
+
+    expect(within(header).getByTestId('brand-mark')).toBeInTheDocument();
+    expect(within(header).getByRole('link', { name: 'Thomas Hadden' })).toBeInTheDocument();
   });
 
   it('renders an Ask control with an accessible name', () => {
