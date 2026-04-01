@@ -1,0 +1,85 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg-primary: #f8fafc;
+  --bg-surface: #ffffff;
+  --bg-elevated: #f1f5f9;
+
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #94a3b8;
+
+  --accent-primary: #0284c7;
+  --accent-hover: #0369a1;
+  --accent-subtle: rgba(2, 132, 199, 0.08);
+
+  --border-default: rgba(148, 163, 184, 0.25);
+  --border-accent: rgba(2, 132, 199, 0.3);
+
+  --glow-accent: rgba(2, 132, 199, 0.1);
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.dark {
+  --bg-primary: #0f172a;
+  --bg-surface: #1e293b;
+  --bg-elevated: #334155;
+
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+
+  --accent-primary: #0ea5e9;
+  --accent-hover: #38bdf8;
+  --accent-subtle: rgba(14, 165, 233, 0.12);
+
+  --border-default: rgba(148, 163, 184, 0.15);
+  --border-accent: rgba(14, 165, 233, 0.4);
+
+  --glow-accent: rgba(14, 165, 233, 0.08);
+  --shadow-card: none;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+}
+
+html {
+  color-scheme: light;
+}
+
+html.dark {
+  color-scheme: dark;
+}
+
+@layer base {
+  body {
+    @apply bg-bg-primary font-sans text-text-primary antialiased;
+  }
+
+  a {
+    @apply text-accent-primary transition-colors duration-normal;
+  }
+
+  a:hover {
+    @apply text-accent-hover;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--accent-primary);
+    outline-offset: 2px;
+  }
+
+  ::selection {
+    background: var(--accent-subtle);
+    color: var(--text-primary);
+  }
+}
