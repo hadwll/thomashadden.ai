@@ -813,7 +813,7 @@ Fetch rendered content for a given page.
 |-------|------|----------|-------------|
 | `:page` | string | path | `about`, `projects`, `research`, `insights`, `home` |
 | `slug` | string | query (optional) | If provided, the response `sections` array is filtered to the single item matching this slug. If no match, returns `404`. |
-| `featured` | boolean | query (optional) | If `true`, only items with `featured = true` are returned. Applicable to `projects` and `research` pages. |
+| `featured` | boolean | query (optional) | If `true`, only items with `featured = true` are returned. Applicable to `projects` page only. |
 
 **Cache headers:**
 
@@ -851,6 +851,8 @@ ETags are generated from the `lastUpdated` field. If the client sends `If-None-M
 ```
 
 When `slug` is provided, the `sections` array contains a single item or the endpoint returns `404`.
+`slug` is mutually exclusive with selector-style query params (`featured`, `page`, `perPage`) and invalid combinations return `422 VALIDATION_ERROR`.
+Using `featured` on non-`projects` pages returns `422 VALIDATION_ERROR`.
 
 ### 13.2 GET /content/insights
 

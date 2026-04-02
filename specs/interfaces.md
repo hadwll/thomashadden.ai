@@ -623,10 +623,10 @@ interface ContentSection {
 | **Purpose** | Fetch rendered content for a page |
 | **Auth** | Public (rate-limited: 100 req/min/IP) |
 | **Path params** | `:page` — `about`, `projects`, `research`, `insights`, `home` |
-| **Query params** | `slug` (optional): filter sections to single match, 404 if not found. `featured` (optional, boolean): filter to featured items only. |
+| **Query params** | `slug` (optional): filter sections to single match, 404 if not found. `featured` (optional, boolean): filter to featured items only and supported on `projects` only. `slug` is mutually exclusive with selector-style query params (`featured`, `page`, `perPage`). |
 | **Response** | `200` — See §5.11 `ContentPageResponse` |
 | **Cache headers** | `Cache-Control: public, max-age=60, stale-while-revalidate=300`. ETag from `lastUpdated`. Supports `304 Not Modified` via `If-None-Match`. |
-| **Error codes** | `404 NOT_FOUND` (page or slug not found) |
+| **Error codes** | `404 NOT_FOUND` (page or slug not found), `422 VALIDATION_ERROR` (invalid query parameter combinations) |
 | **Frontend integration** | Called via React Server Components. ISR with `revalidate: 60`. |
 
 ### 6.12 GET /v1/content/insights
