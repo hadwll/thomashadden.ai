@@ -3,12 +3,14 @@ type BrandMarkProps = {
 };
 
 export function BrandMark({ className = '' }: BrandMarkProps) {
+  const sizeClassName = className.trim().length > 0 ? className : 'h-6 w-6';
+
   return (
     <span
       aria-hidden="true"
       data-brand-mark="true"
       data-testid="brand-mark"
-      className={`inline-flex h-6 w-6 shrink-0 items-center justify-center ${className}`.trim()}
+      className={`inline-flex shrink-0 items-center justify-center ${sizeClassName}`.trim()}
     >
       <img
         src="/brand/iaa-logo-light.svg"
