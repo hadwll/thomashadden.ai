@@ -25,6 +25,28 @@ describe('PageShell', () => {
     expect(screen.getByRole('navigation', { name: 'Mobile navigation' })).toBeInTheDocument();
   });
 
+  it('mounts the decorative atmosphere layer with stable theme-aware markers', () => {
+    render(
+      <PageShell>
+        <p>Atmosphere check</p>
+      </PageShell>
+    );
+
+    const atmosphere = screen.getByTestId('background-atmosphere');
+    const textureLayer = atmosphere.querySelector('[data-atmosphere-layer="texture"]');
+    const perimeterLayer = atmosphere.querySelector('[data-atmosphere-layer="perimeter"]');
+    const heroSupport = atmosphere.querySelector('[data-support-region="hero"]');
+
+    expect(atmosphere).toBeInTheDocument();
+    expect(atmosphere).toHaveAttribute('aria-hidden', 'true');
+    expect(atmosphere).toHaveClass('pointer-events-none');
+    expect(perimeterLayer).toBeInTheDocument();
+    expect(heroSupport).toBeInTheDocument();
+    expect(textureLayer).toBeInTheDocument();
+    expect(textureLayer).toHaveAttribute('data-texture-light', '/background/circuit-texture-light-bg.svg');
+    expect(textureLayer).toHaveAttribute('data-texture-dark', '/background/circuit-texture-dark-bg.svg');
+  });
+
   it('keeps mobile shell content wrapped with compact spacing hooks', () => {
     render(
       <PageShell>
@@ -59,6 +81,19 @@ describe('PageShell', () => {
     );
 
     expect(screen.getByText('Child content remains visible')).toBeInTheDocument();
+  });
+
+  it('keeps shell content rendered above the decorative background', () => {
+    render(
+      <PageShell>
+        <RoutePlaceholder title="Contact" route="/contact" />
+      </PageShell>
+    );
+
+    expect(screen.getByRole('heading', { level: 1, name: 'Contact' })).toBeInTheDocument();
+    expect(screen.getByTestId('shell-main-content')).toContainElement(
+      screen.getByRole('heading', { level: 1, name: 'Contact' })
+    );
   });
 
   it('can wrap route placeholder page content without throwing', () => {
