@@ -42,7 +42,6 @@ const PROJECT_ITEMS: PublicContentItem[] = [
     category: 'platform',
     status: 'active',
     featured: true,
-    imageUrl: '/images/projects/example-project.jpg',
     tags: ['API', 'Next.js']
   },
   {
@@ -54,7 +53,6 @@ const PROJECT_ITEMS: PublicContentItem[] = [
     category: 'industrial-ai',
     status: 'active',
     featured: true,
-    imageUrl: '/images/projects/connected-ai.jpg',
     tags: ['AI', 'Engineering']
   },
   {
@@ -66,7 +64,6 @@ const PROJECT_ITEMS: PublicContentItem[] = [
     category: 'computer-vision',
     status: 'pilot',
     featured: false,
-    imageUrl: '/images/projects/maintenance-vision.jpg',
     tags: ['Computer Vision', 'Operations']
   },
   {
@@ -78,7 +75,6 @@ const PROJECT_ITEMS: PublicContentItem[] = [
     category: 'analytics',
     status: 'active',
     featured: false,
-    imageUrl: '/images/projects/control-room-telemetry.jpg',
     tags: ['Analytics', 'Telemetry']
   }
 ];
