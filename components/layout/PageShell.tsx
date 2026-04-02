@@ -28,7 +28,7 @@ export function PageShell({ children, hideNav = false }: PageShellProps) {
         className="page-shell relative mx-auto flex min-h-screen w-full max-w-shell flex-col bg-bg-primary lg:min-h-0 lg:overflow-hidden lg:rounded-shell lg:border lg:border-border-default"
       >
         <BackgroundAtmosphere />
-        <div className="page-shell-content-stack">
+        <div className="page-shell-content-stack flex min-h-screen flex-col lg:min-h-0">
           {!hideNav ? <NavBar currentPath={currentPath} /> : null}
           <MobileHeader currentPath={currentPath} />
 

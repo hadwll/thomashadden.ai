@@ -127,7 +127,8 @@ html.dark {
   background-image:
     radial-gradient(980px 520px at 8% -8%, rgba(125, 211, 252, 0.26), transparent 68%),
     radial-gradient(900px 500px at 92% 2%, rgba(186, 230, 253, 0.2), transparent 70%),
-    linear-gradient(180deg, #f9fcff 0%, #f2f8ff 46%, #edf4fb 100%);
+    radial-gradient(980px 560px at 50% 64%, rgba(186, 230, 253, 0.16), transparent 74%),
+    linear-gradient(180deg, #fbfdff 0%, #f4f9ff 44%, #edf5ff 100%);
 }
 
 .dark .page-shell-root {
@@ -166,7 +167,8 @@ html.dark {
   background:
     radial-gradient(920px 440px at 11% -2%, rgba(125, 211, 252, 0.2), transparent 68%),
     radial-gradient(820px 420px at 90% 5%, rgba(147, 197, 253, 0.18), transparent 68%),
-    linear-gradient(180deg, #f7fbff 0%, #f2f7fd 52%, #eef4fb 100%);
+    radial-gradient(860px 520px at 48% 60%, rgba(186, 230, 253, 0.14), transparent 74%),
+    linear-gradient(180deg, #f9fcff 0%, #f4f9ff 52%, #eef5ff 100%);
 }
 
 .dark .background-atmosphere__base {
@@ -190,6 +192,7 @@ html.dark {
   background-position: center top;
   background-repeat: no-repeat;
   background-size: cover;
+  -webkit-mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.95) 0%, rgba(0, 0, 0, 0.82) 60%, rgba(0, 0, 0, 0.18) 92%, transparent 100%);
   mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.95) 0%, rgba(0, 0, 0, 0.82) 60%, rgba(0, 0, 0, 0.18) 92%, transparent 100%);
   opacity: var(--atmo-texture-opacity);
 }
@@ -312,8 +315,10 @@ html.dark {
 @media (max-width: 1023px) {
   .page-shell-root {
     background-image:
-      radial-gradient(700px 340px at 50% -7%, rgba(125, 211, 252, 0.2), transparent 68%),
-      linear-gradient(180deg, #f8fbff 0%, #f1f6fd 54%, #ecf2f8 100%);
+      radial-gradient(700px 340px at 50% -7%, rgba(125, 211, 252, 0.24), transparent 68%),
+      radial-gradient(520px 380px at 96% 58%, rgba(147, 197, 253, 0.14), transparent 74%),
+      radial-gradient(520px 360px at 12% 74%, rgba(186, 230, 253, 0.14), transparent 74%),
+      linear-gradient(180deg, #fbfdff 0%, #f4f9ff 52%, #edf5ff 100%);
   }
 
   .dark .page-shell-root {
@@ -384,6 +389,23 @@ html.dark {
     width: 18rem;
     height: 8rem;
     opacity: 0.22;
+  }
+
+  html:not(.dark) .background-atmosphere__support--mid {
+    top: 52%;
+    left: 2%;
+    width: 22rem;
+    height: 11rem;
+    background: rgba(147, 197, 253, 0.17);
+  }
+
+  html:not(.dark) .background-atmosphere__support--lower {
+    bottom: 14%;
+    left: 22%;
+    width: 15rem;
+    height: 7rem;
+    opacity: 0.28;
+    background: rgba(125, 211, 252, 0.15);
   }
 
   .background-atmosphere__perimeter {
