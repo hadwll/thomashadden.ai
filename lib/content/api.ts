@@ -25,6 +25,34 @@ function hasSectionsArray(value: unknown): value is { sections: unknown[] } {
   return isObject(value) && Array.isArray(value.sections);
 }
 
+function isAbsoluteHttpUrl(value: string): boolean {
+  return /^https?:\/\//i.test(value);
+}
+
+function getServerBaseUrl(): string {
+  const envBaseUrl =
+    process.env.PLAYWRIGHT_BASE_URL ?? process.env.NEXT_PUBLIC_SITE_URL ?? process.env.SITE_URL ?? process.env.APP_URL;
+
+  if (envBaseUrl && isAbsoluteHttpUrl(envBaseUrl)) {
+    return envBaseUrl;
+  }
+
+  const port = process.env.PORT ?? '3000';
+  return `http://127.0.0.1:${port}`;
+}
+
+function resolveFetchPath(path: string): string {
+  if (isAbsoluteHttpUrl(path)) {
+    return path;
+  }
+
+  if (typeof window !== 'undefined' || process.env.NODE_ENV === 'test') {
+    return path;
+  }
+
+  return new URL(path, getServerBaseUrl()).toString();
+}
+
 function buildQueryPath(path: string, params: Array<[string, string]>): string {
   if (params.length === 0) {
     return path;
@@ -60,7 +88,7 @@ function extractErrorMessage(payload: unknown): string | null {
 }
 
 async function fetchContentData<T>(path: string, options?: { requireNonEmptySections?: boolean }): Promise<T> {
-  const response = await fetch(path);
+  const response = await fetch(resolveFetchPath(path));
 
   let payload: unknown;
   try {
