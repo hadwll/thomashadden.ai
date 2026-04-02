@@ -22,6 +22,9 @@
   --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.06);
   --nav-indicator-color: var(--accent-primary);
   --nav-indicator-contrast: rgba(2, 132, 199, 0.28);
+  --atmo-shell-perimeter: rgba(56, 189, 248, 0.16);
+  --atmo-shell-inner: rgba(255, 255, 255, 0.5);
+  --atmo-texture-opacity: 0.2;
 }
 
 .dark {
@@ -44,6 +47,9 @@
   --shadow-card: none;
   --nav-indicator-color: var(--accent-primary);
   --nav-indicator-contrast: rgba(14, 165, 233, 0.42);
+  --atmo-shell-perimeter: rgba(14, 165, 233, 0.24);
+  --atmo-shell-inner: rgba(148, 163, 184, 0.15);
+  --atmo-texture-opacity: 0.26;
 }
 
 * {
@@ -114,7 +120,276 @@ html.dark {
   }
 }
 
+.page-shell-root {
+  position: relative;
+  isolation: isolate;
+  background-color: var(--bg-primary);
+  background-image:
+    radial-gradient(980px 520px at 8% -8%, rgba(125, 211, 252, 0.26), transparent 68%),
+    radial-gradient(900px 500px at 92% 2%, rgba(186, 230, 253, 0.2), transparent 70%),
+    linear-gradient(180deg, #f9fcff 0%, #f2f8ff 46%, #edf4fb 100%);
+}
+
+.dark .page-shell-root {
+  background-image:
+    radial-gradient(1000px 580px at 10% -8%, rgba(14, 165, 233, 0.22), transparent 66%),
+    radial-gradient(930px 520px at 94% 4%, rgba(30, 64, 175, 0.24), transparent 72%),
+    linear-gradient(180deg, #081225 0%, #0a1b35 48%, #07172e 100%);
+}
+
+.page-shell {
+  isolation: isolate;
+}
+
+.page-shell-content-stack {
+  position: relative;
+  z-index: 1;
+}
+
+.background-atmosphere,
+.background-atmosphere > div {
+  position: absolute;
+}
+
+.background-atmosphere {
+  inset: 0;
+  z-index: 0;
+}
+
+.background-atmosphere__base,
+.background-atmosphere__perimeter,
+.background-atmosphere__texture {
+  inset: 0;
+}
+
+.background-atmosphere__base {
+  background:
+    radial-gradient(920px 440px at 11% -2%, rgba(125, 211, 252, 0.2), transparent 68%),
+    radial-gradient(820px 420px at 90% 5%, rgba(147, 197, 253, 0.18), transparent 68%),
+    linear-gradient(180deg, #f7fbff 0%, #f2f7fd 52%, #eef4fb 100%);
+}
+
+.dark .background-atmosphere__base {
+  background:
+    radial-gradient(940px 470px at 10% -1%, rgba(14, 165, 233, 0.18), transparent 66%),
+    radial-gradient(840px 430px at 91% 5%, rgba(56, 189, 248, 0.14), transparent 70%),
+    linear-gradient(180deg, #081326 0%, #0d203f 52%, #08172f 100%);
+}
+
+.background-atmosphere__perimeter {
+  border-radius: inherit;
+  box-shadow:
+    inset 0 0 0 1px var(--atmo-shell-inner),
+    0 0 54px -12px var(--atmo-shell-perimeter);
+  opacity: 0.58;
+}
+
+.background-atmosphere__texture {
+  inset: -4% 0 0;
+  background-image: url('/background/circuit-texture-light-bg.svg');
+  background-position: center top;
+  background-repeat: no-repeat;
+  background-size: cover;
+  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.95) 0%, rgba(0, 0, 0, 0.82) 60%, rgba(0, 0, 0, 0.18) 92%, transparent 100%);
+  opacity: var(--atmo-texture-opacity);
+}
+
+.dark .background-atmosphere__texture {
+  background-image: url('/background/circuit-texture-dark-bg.svg');
+}
+
+.background-atmosphere__glow,
+.background-atmosphere__support {
+  border-radius: 999px;
+  filter: blur(70px);
+  transform: translateZ(0);
+}
+
+.background-atmosphere__glow {
+  opacity: 0.5;
+}
+
+.background-atmosphere__glow--top-left {
+  top: -9%;
+  left: -20%;
+  width: 44rem;
+  height: 24rem;
+  background: rgba(125, 211, 252, 0.26);
+}
+
+.background-atmosphere__glow--top-right {
+  top: -6%;
+  right: -19%;
+  width: 38rem;
+  height: 22rem;
+  background: rgba(56, 189, 248, 0.2);
+}
+
+.background-atmosphere__glow--hero-core {
+  top: 8%;
+  left: 18%;
+  width: 40rem;
+  height: 21rem;
+  background: rgba(147, 197, 253, 0.2);
+}
+
+.background-atmosphere__glow--mid-band {
+  top: 43%;
+  left: 21%;
+  width: 37rem;
+  height: 18rem;
+  background: rgba(125, 211, 252, 0.18);
+}
+
+.background-atmosphere__glow--lower-band {
+  bottom: 3%;
+  right: 14%;
+  width: 32rem;
+  height: 15rem;
+  background: rgba(186, 230, 253, 0.15);
+}
+
+.dark .background-atmosphere__glow--top-left {
+  background: rgba(14, 165, 233, 0.28);
+}
+
+.dark .background-atmosphere__glow--top-right {
+  background: rgba(56, 189, 248, 0.2);
+}
+
+.dark .background-atmosphere__glow--hero-core {
+  background: rgba(59, 130, 246, 0.22);
+}
+
+.dark .background-atmosphere__glow--mid-band {
+  background: rgba(14, 165, 233, 0.17);
+}
+
+.dark .background-atmosphere__glow--lower-band {
+  background: rgba(14, 165, 233, 0.12);
+}
+
+.background-atmosphere__support {
+  opacity: 0.42;
+}
+
+.background-atmosphere__support--hero {
+  top: 5%;
+  left: 12%;
+  width: 56rem;
+  height: 24rem;
+  background: rgba(186, 230, 253, 0.23);
+}
+
+.background-atmosphere__support--mid {
+  top: 40%;
+  left: 8%;
+  width: 52rem;
+  height: 20rem;
+  background: rgba(147, 197, 253, 0.14);
+}
+
+.background-atmosphere__support--lower {
+  bottom: -9%;
+  left: 32%;
+  width: 38rem;
+  height: 14rem;
+  background: rgba(125, 211, 252, 0.1);
+}
+
+.dark .background-atmosphere__support--hero {
+  background: rgba(30, 64, 175, 0.28);
+}
+
+.dark .background-atmosphere__support--mid {
+  background: rgba(14, 165, 233, 0.15);
+}
+
+.dark .background-atmosphere__support--lower {
+  background: rgba(14, 165, 233, 0.1);
+}
+
 @media (max-width: 1023px) {
+  .page-shell-root {
+    background-image:
+      radial-gradient(700px 340px at 50% -7%, rgba(125, 211, 252, 0.2), transparent 68%),
+      linear-gradient(180deg, #f8fbff 0%, #f1f6fd 54%, #ecf2f8 100%);
+  }
+
+  .dark .page-shell-root {
+    background-image:
+      radial-gradient(700px 340px at 50% -7%, rgba(14, 165, 233, 0.2), transparent 64%),
+      linear-gradient(180deg, #09162b 0%, #0b1e39 54%, #081730 100%);
+  }
+
+  .background-atmosphere__texture {
+    inset: 0;
+    background-size: 145% auto;
+    background-position: center 0;
+    opacity: calc(var(--atmo-texture-opacity) - 0.07);
+  }
+
+  .background-atmosphere__glow {
+    filter: blur(54px);
+    opacity: 0.44;
+  }
+
+  .background-atmosphere__glow--top-left {
+    top: -12%;
+    left: -33%;
+    width: 26rem;
+    height: 15rem;
+  }
+
+  .background-atmosphere__glow--top-right {
+    top: -10%;
+    right: -32%;
+    width: 24rem;
+    height: 14rem;
+  }
+
+  .background-atmosphere__glow--hero-core {
+    top: 13%;
+    left: 8%;
+    width: 21rem;
+    height: 11rem;
+  }
+
+  .background-atmosphere__desktop-only {
+    display: none;
+  }
+
+  .background-atmosphere__support {
+    filter: blur(52px);
+    opacity: 0.32;
+  }
+
+  .background-atmosphere__support--hero {
+    top: 8%;
+    left: 5%;
+    width: 23rem;
+    height: 10rem;
+  }
+
+  .background-atmosphere__support--mid {
+    top: 47%;
+    left: -3%;
+    width: 21rem;
+    height: 9rem;
+  }
+
+  .background-atmosphere__support--lower {
+    bottom: 6%;
+    left: 5%;
+    width: 18rem;
+    height: 8rem;
+    opacity: 0.22;
+  }
+
+  .background-atmosphere__perimeter {
+    opacity: 0.3;
+  }
+
   .shell-main-content > div {
     min-height: auto;
     align-items: flex-start;
