@@ -20,6 +20,8 @@
 
   --glow-accent: rgba(2, 132, 199, 0.1);
   --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.06);
+  --nav-indicator-color: var(--accent-primary);
+  --nav-indicator-contrast: rgba(2, 132, 199, 0.28);
 }
 
 .dark {
@@ -40,6 +42,8 @@
 
   --glow-accent: rgba(14, 165, 233, 0.08);
   --shadow-card: none;
+  --nav-indicator-color: var(--accent-primary);
+  --nav-indicator-contrast: rgba(14, 165, 233, 0.42);
 }
 
 * {
@@ -81,6 +85,32 @@ html.dark {
   ::selection {
     background: var(--accent-subtle);
     color: var(--text-primary);
+  }
+}
+
+@layer components {
+  .desktop-nav-link {
+    color: var(--text-secondary);
+    transition: color 200ms ease;
+  }
+
+  .desktop-nav-link:hover,
+  .desktop-nav-link[data-hovered='true'],
+  .desktop-nav-link--active {
+    color: var(--accent-primary);
+  }
+
+  .desktop-nav-indicator {
+    bottom: 12px;
+    height: 2px;
+    border-radius: 9999px;
+    background: var(--nav-indicator-color);
+    box-shadow: 0 0 0 1px var(--nav-indicator-contrast);
+    transition:
+      left 200ms ease,
+      width 200ms ease,
+      opacity 120ms ease;
+    will-change: left, width;
   }
 }
 

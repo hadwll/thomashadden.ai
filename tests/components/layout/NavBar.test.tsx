@@ -1,4 +1,5 @@
 import { render, screen, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { NavBar } from '@/components/layout/NavBar';
 
 const DESKTOP_NAV_LINKS = ['Home', 'About', 'Projects', 'Research', 'Insights', 'Contact'] as const;
@@ -35,6 +36,36 @@ describe('NavBar', () => {
     expect(screen.getByRole('link', { name: 'Research' })).toHaveAttribute('aria-current', 'page');
     expect(screen.getByRole('link', { name: 'Home' })).not.toHaveAttribute('aria-current', 'page');
     expect(screen.getByRole('link', { name: 'Projects' })).not.toHaveAttribute('aria-current', 'page');
+  });
+
+  it('does not keep Home highlighted when currentPath resolves to another route', () => {
+    render(<NavBar currentPath="/about" />);
+
+    const homeLink = screen.getByRole('link', { name: 'Home' });
+    const aboutLink = screen.getByRole('link', { name: 'About' });
+
+    expect(aboutLink).toHaveAttribute('aria-current', 'page');
+    expect(aboutLink).toHaveClass('desktop-nav-link--active');
+    expect(homeLink).not.toHaveAttribute('aria-current', 'page');
+    expect(homeLink).not.toHaveClass('desktop-nav-link--active');
+  });
+
+  it('moves indicator target to hovered item and returns to active item on hover exit', async () => {
+    const user = userEvent.setup();
+    render(<NavBar currentPath="/about" />);
+
+    const indicator = screen.getByTestId('desktop-nav-indicator');
+    const projectsLink = screen.getByRole('link', { name: 'Projects' });
+
+    expect(indicator).toHaveAttribute('data-target-href', '/about');
+
+    await user.hover(projectsLink);
+    expect(projectsLink).toHaveAttribute('data-hovered', 'true');
+    expect(indicator).toHaveAttribute('data-target-href', '/projects');
+
+    await user.unhover(projectsLink);
+    expect(projectsLink).toHaveAttribute('data-hovered', 'false');
+    expect(indicator).toHaveAttribute('data-target-href', '/about');
   });
 
   it('does not expose a visible theme toggle control on desktop homepage nav', () => {
