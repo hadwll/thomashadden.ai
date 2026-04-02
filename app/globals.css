@@ -190,6 +190,7 @@ html.dark {
   background-position: center top;
   background-repeat: no-repeat;
   background-size: cover;
+  -webkit-mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.95) 0%, rgba(0, 0, 0, 0.82) 60%, rgba(0, 0, 0, 0.18) 92%, transparent 100%);
   mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.95) 0%, rgba(0, 0, 0, 0.82) 60%, rgba(0, 0, 0, 0.18) 92%, transparent 100%);
   opacity: var(--atmo-texture-opacity);
 }
