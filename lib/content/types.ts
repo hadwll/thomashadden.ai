@@ -1,4 +1,12 @@
-export type PublicContentPage = 'home' | 'about' | 'projects' | 'research' | 'insights';
+export const PUBLIC_CONTENT_PAGE_KEYS = [
+  'home',
+  'about',
+  'projects',
+  'research',
+  'insights'
+] as const;
+
+export type PublicContentPageKey = (typeof PUBLIC_CONTENT_PAGE_KEYS)[number];
 
 export interface PublicContentItem {
   id: string;
@@ -17,7 +25,7 @@ export interface PublicContentItem {
 }
 
 export interface ContentPageResponse {
-  page: PublicContentPage | string;
+  page: PublicContentPageKey;
   title: string;
   sections: PublicContentItem[];
   lastUpdated: string;
@@ -28,7 +36,15 @@ export interface PaginatedContentResponse {
   perPage: number;
   total: number;
   totalPages: number;
+  title: string;
   sections: PublicContentItem[];
+  lastUpdated: string;
+  pagination: {
+    total: number;
+    page: number;
+    perPage: number;
+    totalPages: number;
+  };
 }
 
 export interface PublicContentQueryOptions {
@@ -36,4 +52,8 @@ export interface PublicContentQueryOptions {
   featured?: boolean;
   page?: number;
   perPage?: number;
+}
+
+export function isPublicContentPageKey(value: string): value is PublicContentPageKey {
+  return PUBLIC_CONTENT_PAGE_KEYS.includes(value as PublicContentPageKey);
 }
