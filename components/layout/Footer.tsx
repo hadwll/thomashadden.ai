@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { BrandMark } from '@/components/layout/BrandMark';
 import { ThemeToggle } from '@/components/layout/ThemeToggle';
 
 const FOOTER_LINKS = [
@@ -11,8 +12,14 @@ const FOOTER_LINKS = [
 export function Footer() {
   return (
     <footer className="border-t border-border-default bg-bg-primary">
-      <div className="mx-auto grid w-full max-w-content gap-3 px-4 py-5 sm:px-6 lg:grid-cols-[auto_1fr_auto] lg:items-center lg:gap-6 lg:px-8">
-        <p className="text-sm font-semibold text-text-primary">Thomas Hadden</p>
+      <div className="grid w-full gap-3 px-4 py-6 sm:px-6 lg:grid-cols-[auto_1fr_auto] lg:items-center lg:gap-6 lg:px-6">
+        <Link
+          href="/"
+          className="inline-flex shrink-0 items-center gap-2.5 text-base font-semibold text-text-primary no-underline"
+        >
+          <BrandMark className="h-14 w-14" />
+          <span>Thomas Hadden</span>
+        </Link>
 
         <nav aria-label="Footer links" className="flex flex-wrap items-center gap-3.5 lg:justify-center">
           {FOOTER_LINKS.map((link) => (

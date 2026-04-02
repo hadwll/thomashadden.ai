@@ -58,4 +58,13 @@ describe('MobileNav', () => {
       expect(screen.getByRole('link', { name: itemName })).not.toHaveAttribute('aria-current', 'page');
     }
   });
+
+  it('uses browser pathname fallback when currentPath remains server-default', async () => {
+    window.history.pushState({}, '', '/contact');
+
+    render(<MobileNav currentPath="/" />);
+
+    expect(await screen.findByRole('link', { name: 'Contact' })).toHaveAttribute('aria-current', 'page');
+    expect(screen.getByRole('link', { name: 'Home' })).not.toHaveAttribute('aria-current', 'page');
+  });
 });

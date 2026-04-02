@@ -57,6 +57,7 @@ export function NavBar({ currentPath }: NavBarProps) {
   }, [resolvedPath]);
 
   const indicatorTargetHref = hoveredHref ?? focusedHref ?? activeHref;
+  const shouldAnimateIndicator = hoveredHref !== null || focusedHref !== null;
 
   useEffect(() => {
     if (!indicatorTargetHref) {
@@ -97,13 +98,13 @@ export function NavBar({ currentPath }: NavBarProps) {
   return (
     <nav
       aria-label="Main navigation"
-      className="hidden h-[62px] items-center justify-between border-b border-border-default bg-bg-surface/90 px-6 backdrop-blur lg:flex"
+      className="hidden h-[86px] items-center justify-between border-b border-border-default bg-bg-surface/90 px-6 backdrop-blur lg:flex"
     >
       <Link
         href="/"
         className="inline-flex shrink-0 items-center gap-2.5 text-base font-semibold text-text-primary no-underline"
       >
-        <BrandMark className="h-7 w-7" />
+        <BrandMark className="h-14 w-14" />
         <span>Thomas Hadden</span>
       </Link>
 
@@ -150,7 +151,10 @@ export function NavBar({ currentPath }: NavBarProps) {
           style={{
             left: `${indicatorStyle.left}px`,
             width: `${indicatorStyle.width}px`,
-            opacity: indicatorStyle.visible ? 1 : 0
+            opacity: indicatorStyle.visible ? 1 : 0,
+            transition: shouldAnimateIndicator
+              ? 'left 200ms ease, width 200ms ease, opacity 120ms ease'
+              : 'opacity 120ms ease'
           }}
         />
       </div>

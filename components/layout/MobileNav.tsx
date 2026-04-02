@@ -1,4 +1,7 @@
+'use client';
+
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
 
 type MobileNavProps = {
   currentPath: string;
@@ -79,6 +82,22 @@ function isActivePath(currentPath: string, href: string): boolean {
 }
 
 export function MobileNav({ currentPath }: MobileNavProps) {
+  const [resolvedPath, setResolvedPath] = useState(currentPath);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    const windowPath = window.location.pathname || '/';
+    if (currentPath === '/' && windowPath !== '/') {
+      setResolvedPath(windowPath);
+      return;
+    }
+
+    setResolvedPath(currentPath || windowPath || '/');
+  }, [currentPath]);
+
   return (
     <nav
       aria-label="Mobile navigation"
@@ -86,7 +105,7 @@ export function MobileNav({ currentPath }: MobileNavProps) {
     >
       <ul className="mx-auto grid h-[68px] max-w-content grid-cols-5">
         {MOBILE_NAV_ITEMS.map((item) => {
-          const isActive = isActivePath(currentPath, item.href);
+          const isActive = isActivePath(resolvedPath, item.href);
 
           return (
             <li key={item.href} className="flex">
