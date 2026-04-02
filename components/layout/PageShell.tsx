@@ -8,6 +8,7 @@ import { NavBar } from '@/components/layout/NavBar';
 type PageShellProps = {
   children: ReactNode;
   hideNav?: boolean;
+  homeRoute?: boolean;
 };
 
 function getCurrentPath(): string {
@@ -18,7 +19,7 @@ function getCurrentPath(): string {
   return window.location.pathname || '/';
 }
 
-export function PageShell({ children, hideNav = false }: PageShellProps) {
+export function PageShell({ children, hideNav = false, homeRoute = false }: PageShellProps) {
   const currentPath = getCurrentPath();
 
   return (
@@ -42,7 +43,7 @@ export function PageShell({ children, hideNav = false }: PageShellProps) {
           </main>
 
           {!hideNav ? <MobileNav currentPath={currentPath} /> : null}
-          <Footer />
+          <Footer mode={homeRoute ? 'home' : 'default'} />
         </div>
       </div>
     </div>

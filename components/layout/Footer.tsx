@@ -9,9 +9,18 @@ const FOOTER_LINKS = [
   { href: '/contact', label: 'Contact' }
 ];
 
-export function Footer() {
+export type FooterProps = {
+  mode?: 'default' | 'home';
+};
+
+export function Footer({ mode = 'default' }: FooterProps) {
+  const footerClassName =
+    mode === 'home'
+      ? 'hidden border-t border-border-default bg-bg-primary lg:block'
+      : 'border-t border-border-default bg-bg-primary';
+
   return (
-    <footer className="border-t border-border-default bg-bg-primary">
+    <footer className={footerClassName}>
       <div className="grid w-full gap-3 px-4 py-6 sm:px-6 lg:grid-cols-[auto_1fr_auto] lg:items-center lg:gap-6 lg:px-6">
         <Link
           href="/"
