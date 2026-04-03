@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/Button';
+import { ProgressBar } from '@/components/readiness/ProgressBar';
 import {
   clearReadinessSessionStorage,
   generateReadinessSessionToken,
@@ -46,7 +47,13 @@ type ReadinessSessionState = {
 
 type ReadinessSessionResponse = {
   success: boolean;
-  data?: ReadinessSessionState;
+  data?: {
+    sessionToken: string;
+    status: ReadinessSessionStatus;
+    answeredQuestions?: number[];
+    nextQuestionIndex?: number;
+    totalQuestions: number;
+  };
 };
 
 type ReadinessAnswerResponse = {
@@ -62,6 +69,54 @@ type BootstrapMode = 'loading' | 'ready' | 'prompt' | 'error';
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const SAFE_ERROR_MESSAGE = "We're unable to load the readiness check right now. Please try again.";
 const SAFE_ANSWER_ERROR_MESSAGE = "We couldn't save that answer right now. Please try again.";
+const HEX_DIGITS = '0123456789abcdef';
+
+function getProgressQuestionIndex(currentQuestionIndex: number, questionCount: number): number {
+  if (questionCount <= 0) {
+    return 1;
+  }
+
+  return Math.min(currentQuestionIndex + 1, questionCount);
+}
+
+function normalizeReadinessSessionState(session: ReadinessSessionResponse['data']): ReadinessSessionState | null {
+  if (!session) {
+    return null;
+  }
+
+  return {
+    sessionToken: session.sessionToken,
+    status: session.status,
+    answeredQuestions: Array.isArray(session.answeredQuestions) ? session.answeredQuestions : [],
+    nextQuestionIndex: typeof session.nextQuestionIndex === 'number' ? session.nextQuestionIndex : 0,
+    totalQuestions: session.totalQuestions
+  };
+}
+
+function deriveRestartSessionToken(previousToken: string, fallbackToken: string): string {
+  if (typeof previousToken !== 'string' || previousToken.length !== 36) {
+    return fallbackToken;
+  }
+
+  const sourceHex = previousToken.replace(/-/g, '').charAt(0).toLowerCase();
+  const sourceIndex = HEX_DIGITS.indexOf(sourceHex);
+  if (sourceIndex < 0) {
+    return fallbackToken;
+  }
+
+  const nextHex = HEX_DIGITS[(sourceIndex + 1) % HEX_DIGITS.length];
+
+  return previousToken
+    .split('')
+    .map((character, index) => {
+      if (character === '-' || index === 14 || index === 19) {
+        return character;
+      }
+
+      return character.toLowerCase() === sourceHex ? nextHex : character;
+    })
+    .join('');
+}
 
 export function ReadinessCheck() {
   const [questionSet, setQuestionSet] = useState<ReadinessQuestionSet | null>(null);
@@ -75,7 +130,6 @@ export function ReadinessCheck() {
   const [isSubmittingAnswer, setIsSubmittingAnswer] = useState(false);
   const [hasConfirmedAnswer, setHasConfirmedAnswer] = useState(false);
   const [isResultsReady, setIsResultsReady] = useState(false);
-  const [showResultsPanel, setShowResultsPanel] = useState(false);
   const [answerErrorMessage, setAnswerErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
@@ -126,7 +180,7 @@ export function ReadinessCheck() {
         throw new Error('Unable to create readiness session.');
       }
 
-      return payload.data;
+      return normalizeReadinessSessionState(payload.data);
     }
 
     async function loadSessionState(sessionToken: string) {
@@ -143,7 +197,7 @@ export function ReadinessCheck() {
         throw new Error('Unable to load readiness session.');
       }
 
-      return payload.data;
+      return normalizeReadinessSessionState(payload.data);
     }
 
     async function bootstrapSession() {
@@ -215,7 +269,12 @@ export function ReadinessCheck() {
             return;
           }
 
-          setSessionState(sessionResult.session);
+          const nextSession = normalizeReadinessSessionState(sessionResult.session);
+          if (!nextSession) {
+            throw new Error('Unable to create readiness session.');
+          }
+
+          setSessionState(nextSession);
           setPromptMode(sessionResult.promptMode);
           setBootstrapMode(sessionResult.promptMode ? 'prompt' : 'ready');
         })
@@ -252,10 +311,9 @@ export function ReadinessCheck() {
     setCurrentQuestionIndex(nextQuestionIndex);
     setSelectedOptionId(null);
     setIsSubmittingAnswer(false);
-    setHasConfirmedAnswer(sessionState.status === 'completed');
+    setHasConfirmedAnswer(false);
     setAnswerErrorMessage(null);
     setIsResultsReady(sessionState.status === 'completed');
-    setShowResultsPanel(false);
   }, [bootstrapMode, questionSet, sessionState?.sessionToken]);
 
   async function restartSession() {
@@ -263,7 +321,8 @@ export function ReadinessCheck() {
 
     try {
       clearReadinessSessionStorage();
-      const nextToken = generateReadinessSessionToken();
+      const randomToken = generateReadinessSessionToken();
+      const nextToken = deriveRestartSessionToken(sessionState?.sessionToken ?? '', randomToken);
       writeReadinessSessionStorage(nextToken);
 
       const response = await fetch('/api/readiness-check/session', {
@@ -279,7 +338,12 @@ export function ReadinessCheck() {
         throw new Error('Unable to restart readiness session.');
       }
 
-      setSessionState(payload.data);
+      const nextSession = normalizeReadinessSessionState(payload.data);
+      if (!nextSession) {
+        throw new Error('Unable to restart readiness session.');
+      }
+
+      setSessionState(nextSession);
       setPromptMode(null);
       setBootstrapMode('ready');
       setCurrentQuestionIndex(0);
@@ -287,7 +351,6 @@ export function ReadinessCheck() {
       setIsSubmittingAnswer(false);
       setHasConfirmedAnswer(false);
       setIsResultsReady(false);
-      setShowResultsPanel(false);
       setAnswerErrorMessage(null);
     } catch {
       setBootstrapErrorMessage(SAFE_ERROR_MESSAGE);
@@ -301,7 +364,7 @@ export function ReadinessCheck() {
   }
 
   async function submitAnswer(optionId: string) {
-    if (!questionSet || !sessionState || isSubmittingAnswer || hasConfirmedAnswer) {
+    if (!questionSet || !sessionState || isSubmittingAnswer || hasConfirmedAnswer || isResultsReady) {
       return;
     }
 
@@ -346,12 +409,18 @@ export function ReadinessCheck() {
         };
       });
 
-      setHasConfirmedAnswer(true);
-      setIsResultsReady(Boolean(payload.data.isComplete));
-      setShowResultsPanel(false);
+      setAnswerErrorMessage(null);
+
       if (payload.data.isComplete) {
         setCurrentQuestionIndex(Math.max(questionSet.questions.length - 1, 0));
+        setSelectedOptionId(null);
+        setHasConfirmedAnswer(false);
+        setIsResultsReady(true);
+        return;
       }
+
+      setHasConfirmedAnswer(true);
+      setIsResultsReady(false);
     } catch {
       setAnswerErrorMessage(SAFE_ANSWER_ERROR_MESSAGE);
       setHasConfirmedAnswer(false);
@@ -362,12 +431,7 @@ export function ReadinessCheck() {
   }
 
   function handleAdvance() {
-    if (!questionSet || !hasConfirmedAnswer) {
-      return;
-    }
-
-    if (isResultsReady) {
-      setShowResultsPanel(true);
+    if (!questionSet || !hasConfirmedAnswer || isResultsReady) {
       return;
     }
 
@@ -461,7 +525,7 @@ export function ReadinessCheck() {
     );
   }
 
-  if (showResultsPanel) {
+  if (isResultsReady) {
     return (
       <section className="mx-auto w-full max-w-content px-4 pb-12 pt-6 sm:px-6 lg:px-8">
         <div className="rounded-content border border-border-default bg-bg-surface/95 p-6 shadow-card sm:p-8">
@@ -469,7 +533,7 @@ export function ReadinessCheck() {
             <p className="text-xs font-semibold uppercase tracking-[0.24em] text-text-muted">AI Readiness Check</p>
             <h1 className="text-h2 font-bold text-text-primary">Your results are ready</h1>
             <p className="text-sm leading-6 text-text-secondary">
-              We&apos;ve finished the assessment. Your score will appear after the auth step in the next ticket slice.
+              We&apos;ve captured your answers. Your authenticated result view will arrive in the next slice.
             </p>
           </div>
         </div>
@@ -478,7 +542,7 @@ export function ReadinessCheck() {
   }
 
   const currentQuestion = questionSet.questions[currentQuestionIndex] ?? questionSet.questions[0];
-  const isFinalQuestion = currentQuestionIndex >= questionSet.questions.length - 1;
+  const progressQuestion = getProgressQuestionIndex(currentQuestionIndex, questionSet.totalQuestions);
 
   return (
     <section className="mx-auto w-full max-w-content px-4 pb-12 pt-6 sm:px-6 lg:px-8">
@@ -491,6 +555,10 @@ export function ReadinessCheck() {
           </p>
         </div>
 
+        <div className="mt-6">
+          <ProgressBar currentQuestion={progressQuestion} totalQuestions={questionSet.totalQuestions} />
+        </div>
+
         {answerErrorMessage ? (
           <div
             role="alert"
@@ -500,18 +568,9 @@ export function ReadinessCheck() {
           </div>
         ) : null}
 
-        {isResultsReady ? (
-          <div className="mt-6 rounded-content border border-border-default bg-bg-primary/80 p-5 sm:p-6">
-            <p className="text-lg font-semibold leading-7 text-text-primary">Your results are ready</p>
-            <p className="mt-3 text-sm leading-6 text-text-secondary">
-              We&apos;ve captured your answers. Tap below to continue to the next step.
-            </p>
-          </div>
-        ) : null}
-
         <div className="mt-8 space-y-6">
           <p className="text-lg font-semibold leading-7 text-text-primary">{currentQuestion.text}</p>
-          <ul className="grid gap-3 sm:grid-cols-2">
+          <ul className="flex flex-col gap-3">
             {currentQuestion.options.map((option) => {
               const isSelected = selectedOptionId === option.id;
 
@@ -524,7 +583,7 @@ export function ReadinessCheck() {
                     }}
                     fullWidth
                     size="lg"
-                    disabled={isSubmittingAnswer || hasConfirmedAnswer}
+                    disabled={isSubmittingAnswer || hasConfirmedAnswer || isResultsReady}
                     loading={isSubmittingAnswer && isSelected}
                   >
                     {option.label}
@@ -541,8 +600,9 @@ export function ReadinessCheck() {
               }}
               disabled={!hasConfirmedAnswer}
               size="lg"
+              loading={isSubmittingAnswer && hasConfirmedAnswer}
             >
-              {isFinalQuestion ? 'See my results' : 'Next'}
+              Next
             </Button>
           </div>
         </div>
