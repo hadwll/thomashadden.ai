@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { classifyLLMQuery } from '@/lib/llm/classifier';
 import { isLLMQuerySource, validateLLMQuery } from '@/lib/llm/query';
 import * as llmServer from '@/lib/llm/server';
-import type { LLMQueryRequest } from '@/lib/llm/types';
+import type { LLMQueryRequest, LLMQuerySource } from '@/lib/llm/types';
 
 type ErrorCode = 'VALIDATION_ERROR' | 'LLM_ERROR';
 
@@ -11,7 +11,7 @@ type ParsedPayload = {
   stream: boolean;
   sessionId?: string;
   context?: {
-    source?: LLMQueryRequest['context'] extends { source?: infer T } ? T : never;
+    source?: LLMQuerySource;
   };
 };
 
@@ -128,7 +128,7 @@ function parseLLMQueryRequest(body: unknown): ParsedPayload | { error: NextRespo
     }
   }
 
-  let source: ParsedPayload['context']['source'];
+  let source: LLMQuerySource | undefined;
   if (body.context !== undefined) {
     if (!isObjectRecord(body.context)) {
       return {

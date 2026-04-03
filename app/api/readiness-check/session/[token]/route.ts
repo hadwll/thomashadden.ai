@@ -3,7 +3,8 @@ import {
   getReadinessSession,
   isReadinessSessionStale,
   markReadinessSessionAbandoned,
-  READINESS_TOTAL_QUESTIONS
+  READINESS_TOTAL_QUESTIONS,
+  type ReadinessSessionRecord
 } from '@/lib/readiness/session-store';
 
 type ErrorCode = 'VALIDATION_ERROR' | 'NOT_FOUND' | 'INTERNAL_ERROR';
@@ -37,13 +38,7 @@ function error(status: number, code: ErrorCode, message: string, details?: Recor
   );
 }
 
-function ok(session: {
-  sessionToken: string;
-  status: 'in_progress' | 'abandoned';
-  answeredQuestions: number[];
-  nextQuestionIndex: number;
-  totalQuestions: typeof READINESS_TOTAL_QUESTIONS;
-}) {
+function ok(session: ReadinessSessionRecord) {
   return NextResponse.json(
     {
       success: true,

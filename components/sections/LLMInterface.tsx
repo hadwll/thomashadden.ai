@@ -28,17 +28,18 @@ type AnswerPreview = {
 const HOMEPAGE_PROMPTS = [
   'How can AI help an engineering business?',
   'What is Thomas working on?',
-  'Where does AI fit into industry?',
-  'What is RAG?'
+  'Where does AI fit into industry?'
 ] as const;
 
 const DEFAULT_SAFE_ERROR_MESSAGE = "I'm having a moment - please try again in a few seconds.";
 
 const STATIC_PREVIEW_BULLETS = [
-  'Automate repetitive reporting and data entry tasks.',
-  'Improve quality control through predictive analytics.',
-  'Optimize scheduling and resource allocation.',
-  'Analyze operational data to identify cost savings.'
+  'Automate repetitive reporting, data entry, and compliance documentation.',
+  'Improve quality control through computer vision and predictive analytics.',
+  'Optimise scheduling, resource allocation, and energy consumption.',
+  'Analyse operational data to identify cost savings and efficiency gains.',
+  'Enhance maintenance planning with condition-based monitoring.',
+  'Support faster, better-informed decision-making with real-time dashboards.'
 ];
 
 function isDesktopViewport() {

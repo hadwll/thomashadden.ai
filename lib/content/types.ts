@@ -3,7 +3,8 @@ export const PUBLIC_CONTENT_PAGE_KEYS = [
   'about',
   'projects',
   'research',
-  'insights'
+  'insights',
+  'contact'
 ] as const;
 
 export type PublicContentPageKey = (typeof PUBLIC_CONTENT_PAGE_KEYS)[number];

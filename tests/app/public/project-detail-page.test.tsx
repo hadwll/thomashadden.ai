@@ -14,13 +14,14 @@ vi.mock('next/navigation', () => ({
 }));
 
 const PROJECT_DETAIL = {
-  id: 'predictive-maintenance-platform',
-  title: 'Predictive Maintenance Platform',
-  slug: 'predictive-maintenance-platform',
-  summary: 'Detailed architecture and deployment notes for predictive maintenance.',
+  id: 'servo-drive-upgrade-wastewater',
+  title: 'Servo Drive Upgrade for Wastewater Treatment',
+  slug: 'servo-drive-upgrade-wastewater',
+  summary:
+    'A full servo control system upgrade on an automated sludge press used in wastewater treatment, replacing an obsolete Siemens 611U platform with a modern S120 drive system.',
   updatedAt: '2026-03-15T10:30:00Z',
-  category: 'Industrial AI',
-  status: 'active'
+  category: 'Industrial Automation',
+  status: 'completed'
 };
 
 async function renderProjectDetail(slug: string) {
@@ -40,9 +41,9 @@ describe('/projects/[slug] detail page contract', () => {
       lastUpdated: '2026-03-15T10:30:00Z'
     });
 
-    await renderProjectDetail('predictive-maintenance-platform');
+    await renderProjectDetail('servo-drive-upgrade-wastewater');
 
-    expect(contentApi.getProjectsContent).toHaveBeenCalledWith({ slug: 'predictive-maintenance-platform' });
+    expect(contentApi.getProjectsContent).toHaveBeenCalledWith({ slug: 'servo-drive-upgrade-wastewater' });
   });
 
   it('renders title, detail content, metadata surface, and back link to /projects', async () => {
@@ -53,7 +54,7 @@ describe('/projects/[slug] detail page contract', () => {
       lastUpdated: '2026-03-15T10:30:00Z'
     });
 
-    await renderProjectDetail('predictive-maintenance-platform');
+    await renderProjectDetail('servo-drive-upgrade-wastewater');
 
     const main = screen.getByTestId('shell-main-content');
     expect(within(main).getByRole('heading', { level: 1, name: PROJECT_DETAIL.title })).toBeInTheDocument();
@@ -83,7 +84,7 @@ describe('/projects/[slug] detail page contract', () => {
       lastUpdated: '2026-03-15T10:30:00Z'
     });
 
-    await renderProjectDetail('predictive-maintenance-platform');
+    await renderProjectDetail('servo-drive-upgrade-wastewater');
 
     expect(screen.queryByText('Placeholder route for SPR-01 bootstrap.')).not.toBeInTheDocument();
   });

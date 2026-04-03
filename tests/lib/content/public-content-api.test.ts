@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   getAboutContent,
+  getContactContent,
   getHomeContent,
   getInsightsContent,
   getProjectsContent,
@@ -55,6 +56,21 @@ describe('public content API helpers', () => {
     expectRequestedPath('/api/content/about');
   });
 
+  it('calls /api/content/contact for getContactContent', async () => {
+    vi.mocked(global.fetch).mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          success: true,
+          data: { page: 'contact', title: 'Contact', sections: [], lastUpdated: '2026-03-15T10:30:00Z' }
+        }),
+        { status: 200 }
+      )
+    );
+
+    await expect(getContactContent()).resolves.toMatchObject({ page: 'contact' });
+    expectRequestedPath('/api/content/contact');
+  });
+
   it('calls /api/content/projects for projects list', async () => {
     vi.mocked(global.fetch).mockResolvedValue(
       new Response(
@@ -95,9 +111,9 @@ describe('public content API helpers', () => {
             title: 'Projects',
             sections: [
               {
-                id: 'example-project',
-                title: 'Example Project',
-                slug: 'example-project',
+                id: 'servo-drive-upgrade-wastewater',
+                title: 'Servo Drive Upgrade for Wastewater Treatment',
+                slug: 'servo-drive-upgrade-wastewater',
                 summary: 'Summary',
                 updatedAt: '2026-03-15T10:30:00Z'
               }
@@ -109,10 +125,10 @@ describe('public content API helpers', () => {
       )
     );
 
-    await expect(getProjectsContent({ slug: 'example-project' })).resolves.toMatchObject({
+    await expect(getProjectsContent({ slug: 'servo-drive-upgrade-wastewater' })).resolves.toMatchObject({
       page: 'projects'
     });
-    expectRequestedPath('/api/content/projects?slug=example-project');
+    expectRequestedPath('/api/content/projects?slug=servo-drive-upgrade-wastewater');
   });
 
   it('calls /api/content/research?slug=... for research detail', async () => {
@@ -125,9 +141,9 @@ describe('public content API helpers', () => {
             title: 'Research',
             sections: [
               {
-                id: 'example-research',
-                title: 'Example Research',
-                slug: 'example-research',
+                id: 'bearing-fault-detection-wavelet',
+                title: 'Bearing Fault Detection Using Wavelet Methods and Machine Learning',
+                slug: 'bearing-fault-detection-wavelet',
                 summary: 'Summary',
                 updatedAt: '2026-03-15T10:30:00Z'
               }
@@ -139,10 +155,10 @@ describe('public content API helpers', () => {
       )
     );
 
-    await expect(getResearchContent({ slug: 'example-research' })).resolves.toMatchObject({
+    await expect(getResearchContent({ slug: 'bearing-fault-detection-wavelet' })).resolves.toMatchObject({
       page: 'research'
     });
-    expectRequestedPath('/api/content/research?slug=example-research');
+    expectRequestedPath('/api/content/research?slug=bearing-fault-detection-wavelet');
   });
 
   it('calls /api/content/insights?page=1&perPage=10 for paginated insights', async () => {

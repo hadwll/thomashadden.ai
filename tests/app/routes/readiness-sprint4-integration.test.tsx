@@ -234,7 +234,7 @@ describe('Sprint 4 route integration', () => {
     mockAuthenticatedSession();
     window.history.replaceState({}, '', '/contact?source=readiness_check&result=early_stage');
 
-    render(<ContactPage />);
+    render(await ContactPage());
 
     const form = screen.getByTestId('contact-form-shell');
     expect(screen.getByRole('heading', { level: 1, name: 'Contact' })).toBeVisible();

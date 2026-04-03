@@ -7,6 +7,7 @@ import {
 } from '@/lib/content/mappers';
 import {
   ABOUT_CONTENT,
+  CONTACT_CONTENT,
   HOME_CONTENT,
   INSIGHTS_CONTENT,
   PROJECTS_CONTENT,
@@ -125,6 +126,13 @@ function buildPageResponse(page: PublicContentPageKey) {
         RESEARCH_CONTENT.sections,
         RESEARCH_CONTENT.lastUpdated
       );
+    case 'contact':
+      return buildContentPageResponse(
+        CONTACT_CONTENT.page,
+        CONTACT_CONTENT.title,
+        CONTACT_CONTENT.sections,
+        CONTACT_CONTENT.lastUpdated
+      );
     case 'insights':
       return buildContentPageResponse(
         INSIGHTS_CONTENT.page,
@@ -190,7 +198,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
     return error(422, 'VALIDATION_ERROR', 'featured is only supported for projects.');
   }
 
-  if ((page === 'home' || page === 'about') && Array.from(searchParams.keys()).length > 0) {
+  if ((page === 'home' || page === 'about' || page === 'contact') && Array.from(searchParams.keys()).length > 0) {
     return error(422, 'VALIDATION_ERROR', `Query parameters are not supported for ${page}.`);
   }
 
@@ -264,6 +272,10 @@ export async function GET(request: NextRequest, context: RouteContext) {
           RESEARCH_CONTENT.lastUpdated
         )
       );
+    }
+
+    if (page === 'contact') {
+      return ok(buildPageResponse('contact'));
     }
 
     if (slug.length > 0) {

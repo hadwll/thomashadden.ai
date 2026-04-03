@@ -8,20 +8,23 @@ vi.mock('@/lib/content/api', () => ({
 
 const RESEARCH_ITEMS = [
   {
-    id: 'agentic-operations',
-    title: 'Agentic Operations in Industrial Control',
-    slug: 'agentic-operations-industrial-control',
-    summary: 'Applied research into reliable multi-agent orchestration.',
-    updatedAt: '2026-03-12T10:30:00Z',
-    theme: 'Industrial Automation'
+    id: 'bearing-fault-detection-wavelet',
+    title: 'Bearing Fault Detection Using Wavelet Methods and Machine Learning',
+    slug: 'bearing-fault-detection-wavelet',
+    summary: 'Research into detecting roller element bearing faults using wavelet decomposition.',
+    updatedAt: '2026-03-14T10:30:00Z',
+    theme: 'Applied AI',
+    featured: true
   },
   {
-    id: 'edge-vision',
-    title: 'Edge Vision Deployment Patterns',
-    slug: 'edge-vision-deployment-patterns',
-    summary: 'Field-tested deployment constraints for edge inference.',
+    id: 'phd-ai-process-control',
+    title: 'AI-Driven Innovation in Industrial and Process Control Systems',
+    slug: 'phd-ai-process-control',
+    summary:
+      'A part-time PhD at Ulster University investigating how reinforcement learning and digital twin methodologies can be applied to real-world industrial process control.',
     updatedAt: '2026-03-13T10:30:00Z',
-    theme: 'Computer Vision'
+    theme: 'Industrial AI',
+    featured: true
   }
 ];
 
@@ -54,21 +57,25 @@ describe('/research list page contract', () => {
 
     const main = screen.getByTestId('shell-main-content');
     expect(within(main).getByRole('heading', { level: 1, name: 'Research' })).toBeInTheDocument();
-    expect(within(main).getByText('Agentic Operations in Industrial Control')).toBeInTheDocument();
-    expect(within(main).getByText('Edge Vision Deployment Patterns')).toBeInTheDocument();
+    expect(within(main).getByText('Bearing Fault Detection Using Wavelet Methods and Machine Learning')).toBeInTheDocument();
+    expect(within(main).getByText('AI-Driven Innovation in Industrial and Process Control Systems')).toBeInTheDocument();
   });
 
   it('renders each research item as a link to /research/[slug]', async () => {
     await renderResearchPage();
 
     const main = screen.getByTestId('shell-main-content');
-    expect(within(main).getByRole('link', { name: /Agentic Operations in Industrial Control/i })).toHaveAttribute(
+    expect(
+      within(main).getByRole('link', { name: /Bearing Fault Detection Using Wavelet Methods and Machine Learning/i })
+    ).toHaveAttribute(
       'href',
-      '/research/agentic-operations-industrial-control'
+      '/research/bearing-fault-detection-wavelet'
     );
-    expect(within(main).getByRole('link', { name: /Edge Vision Deployment Patterns/i })).toHaveAttribute(
+    expect(
+      within(main).getByRole('link', { name: /AI-Driven Innovation in Industrial and Process Control Systems/i })
+    ).toHaveAttribute(
       'href',
-      '/research/edge-vision-deployment-patterns'
+      '/research/phd-ai-process-control'
     );
   });
 

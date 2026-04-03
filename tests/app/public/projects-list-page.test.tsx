@@ -8,22 +8,34 @@ vi.mock('@/lib/content/api', () => ({
 
 const PROJECT_ITEMS = [
   {
-    id: 'predictive-maintenance',
-    title: 'Predictive Maintenance Platform',
-    slug: 'predictive-maintenance-platform',
-    summary: 'Predictive failure modeling for industrial assets.',
-    updatedAt: '2026-03-10T10:30:00Z',
-    category: 'Industrial AI',
-    status: 'active'
+    id: 'servo-drive-upgrade-wastewater',
+    title: 'Servo Drive Upgrade for Wastewater Treatment',
+    slug: 'servo-drive-upgrade-wastewater',
+    summary: 'A full servo control system upgrade on an automated sludge press used in wastewater treatment.',
+    updatedAt: '2026-03-17T10:30:00Z',
+    category: 'Industrial Automation',
+    status: 'completed',
+    featured: true
   },
   {
-    id: 'quality-vision',
-    title: 'Computer Vision QA Pipeline',
-    slug: 'computer-vision-qa-pipeline',
-    summary: 'Automated visual inspection and exception routing.',
-    updatedAt: '2026-03-11T10:30:00Z',
-    category: 'Automation',
-    status: 'active'
+    id: 'alpr-vehicle-tracking',
+    title: 'Automatic Licence Plate Recognition System',
+    slug: 'alpr-vehicle-tracking',
+    summary: 'A bespoke Automatic Licence Plate Recognition system designed and built for a waste management and land regeneration business.',
+    updatedAt: '2026-03-16T10:30:00Z',
+    category: 'Applied AI',
+    status: 'completed',
+    featured: true
+  },
+  {
+    id: 'date-code-vision-classifier',
+    title: 'Date Code Vision System',
+    slug: 'date-code-vision-classifier',
+    summary: 'A deep learning vision system built to classify date codes on packaging in a live food manufacturing environment.',
+    updatedAt: '2026-03-15T10:30:00Z',
+    category: 'AI & Computer Vision',
+    status: 'completed',
+    featured: true
   }
 ];
 
@@ -56,21 +68,26 @@ describe('/projects list page contract', () => {
 
     const main = screen.getByTestId('shell-main-content');
     expect(within(main).getByRole('heading', { level: 1, name: 'Projects' })).toBeInTheDocument();
-    expect(within(main).getByText('Predictive Maintenance Platform')).toBeInTheDocument();
-    expect(within(main).getByText('Computer Vision QA Pipeline')).toBeInTheDocument();
+    expect(within(main).getByText('Servo Drive Upgrade for Wastewater Treatment')).toBeInTheDocument();
+    expect(within(main).getByText('Automatic Licence Plate Recognition System')).toBeInTheDocument();
+    expect(within(main).getByText('Date Code Vision System')).toBeInTheDocument();
   });
 
   it('renders each project as a link to /projects/[slug]', async () => {
     await renderProjectsPage();
 
     const main = screen.getByTestId('shell-main-content');
-    expect(within(main).getByRole('link', { name: /Predictive Maintenance Platform/i })).toHaveAttribute(
+    expect(within(main).getByRole('link', { name: /Servo Drive Upgrade for Wastewater Treatment/i })).toHaveAttribute(
       'href',
-      '/projects/predictive-maintenance-platform'
+      '/projects/servo-drive-upgrade-wastewater'
     );
-    expect(within(main).getByRole('link', { name: /Computer Vision QA Pipeline/i })).toHaveAttribute(
+    expect(within(main).getByRole('link', { name: /Automatic Licence Plate Recognition System/i })).toHaveAttribute(
       'href',
-      '/projects/computer-vision-qa-pipeline'
+      '/projects/alpr-vehicle-tracking'
+    );
+    expect(within(main).getByRole('link', { name: /Date Code Vision System/i })).toHaveAttribute(
+      'href',
+      '/projects/date-code-vision-classifier'
     );
   });
 

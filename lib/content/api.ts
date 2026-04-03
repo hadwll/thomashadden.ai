@@ -132,6 +132,10 @@ export async function getAboutContent(): Promise<ContentPageResponse> {
   return fetchContentData<ContentPageResponse>('/api/content/about');
 }
 
+export async function getContactContent(): Promise<ContentPageResponse> {
+  return fetchContentData<ContentPageResponse>('/api/content/contact');
+}
+
 export async function getProjectsContent(
   options: PublicContentQueryOptions = {}
 ): Promise<ContentPageResponse> {

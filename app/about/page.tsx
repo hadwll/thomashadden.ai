@@ -1,6 +1,8 @@
 import { PageShell } from '@/components/layout/PageShell';
 import * as contentApi from '@/lib/content/api';
 
+export const dynamic = 'force-dynamic';
+
 function getAboutParagraphs(summary: string): string[] {
   return summary
     .split(/\n\s*\n/g)

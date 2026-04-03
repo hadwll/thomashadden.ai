@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-const DESKTOP_CHIP = 'What is RAG?';
+const DESKTOP_CHIP = 'Where does AI fit into industry?';
 const MOBILE_LAUNCHER_PROMPT = 'How can AI help an engineering business?';
 
 const NON_STREAM_PAYLOAD = {

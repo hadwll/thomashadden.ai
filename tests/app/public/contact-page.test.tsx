@@ -3,18 +3,34 @@ import ContactPage from '@/app/contact/page';
 import * as contentApi from '@/lib/content/api';
 
 vi.mock('@/lib/content/api', () => ({
-  getHomeContent: vi.fn(),
-  getAboutContent: vi.fn(),
-  getProjectsContent: vi.fn(),
-  getResearchContent: vi.fn(),
-  getInsightsContent: vi.fn()
+  getContactContent: vi.fn()
 }));
+
+const CONTACT_SUMMARY =
+  "If you're thinking about where AI fits in your business, exploring automation for an engineering or process environment, or interested in research collaboration, I'd like to hear from you. I work across industrial automation, applied AI, and control systems, and I'm always open to conversations with business owners, integrators, and fellow engineers who are working through similar problems. Whether it's a specific technical question, a project you're considering, or a broader conversation about AI readiness, drop me a message below and I'll get back to you.";
 
 async function renderContactPage() {
   render(await ContactPage());
 }
 
 describe('/contact page contract', () => {
+  beforeEach(() => {
+    vi.mocked(contentApi.getContactContent).mockResolvedValue({
+      page: 'contact',
+      title: 'Contact',
+      sections: [
+        {
+          id: 'contact-intro',
+          title: 'Contact Introduction',
+          slug: 'contact-intro',
+          summary: CONTACT_SUMMARY,
+          updatedAt: '2026-03-12T10:30:00Z'
+        }
+      ],
+      lastUpdated: '2026-03-12T10:30:00Z'
+    });
+  });
+
   afterEach(() => {
     vi.clearAllMocks();
   });
@@ -31,9 +47,8 @@ describe('/contact page contract', () => {
     await renderContactPage();
 
     const main = screen.getByTestId('shell-main-content');
-    expect(
-      within(main).getByText(/ai in business|industrial.*ai|collaboration|research|technical enquiries/i)
-    ).toBeInTheDocument();
+    expect(within(main).getByText(/where AI fits in your business/i)).toBeInTheDocument();
+    expect(within(main).getByText(/research collaboration/i)).toBeInTheDocument();
   });
 
   it('renders a visible contact-form shell area', async () => {
@@ -50,14 +65,10 @@ describe('/contact page contract', () => {
     expect(hasFormShell).toBe(true);
   });
 
-  it('does not rely on public content fetch helpers for contact route rendering', async () => {
+  it('fetches contact content through the public content helper', async () => {
     await renderContactPage();
 
-    expect(contentApi.getHomeContent).not.toHaveBeenCalled();
-    expect(contentApi.getAboutContent).not.toHaveBeenCalled();
-    expect(contentApi.getProjectsContent).not.toHaveBeenCalled();
-    expect(contentApi.getResearchContent).not.toHaveBeenCalled();
-    expect(contentApi.getInsightsContent).not.toHaveBeenCalled();
+    expect(contentApi.getContactContent).toHaveBeenCalledTimes(1);
   });
 
   it('does not keep RoutePlaceholder copy once implemented', async () => {
