@@ -81,8 +81,8 @@ export default async function HomePage() {
 
   return (
     <PageShell homeRoute>
-      <div data-testid="home-desktop-content" className="flex flex-col gap-8 px-4 pb-10 pt-6 sm:px-6 lg:px-8">
-        <div data-testid="home-mobile-content" className="flex flex-col gap-4">
+      <div data-testid="home-desktop-content" className="flex w-full flex-col gap-8 px-4 pb-10 pt-6 sm:px-6 lg:px-8">
+        <div data-testid="home-mobile-content" className="flex w-full flex-col gap-4">
           <HeroSection />
           <LLMInterface variant="homepage" />
 
@@ -107,7 +107,7 @@ export default async function HomePage() {
           </div>
         </div>
 
-        <div className="hidden flex-col gap-8 lg:flex">
+        <div className="hidden w-full flex-col gap-8 lg:flex">
           <FeaturedWork items={featuredProjectsContent.sections} variant="desktop" />
           <AboutTeaser paragraphs={aboutParagraphs} variant="desktop" />
           <ResearchTeaser items={researchContent.sections} variant="desktop" />

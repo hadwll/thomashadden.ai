@@ -79,6 +79,42 @@ test('mobile home renders collapsed rows and mobile homepage controls', async ({
   await expect(page.getByRole('contentinfo')).toHaveCount(0);
 });
 
+test('mobile home stays within a 375px viewport and keeps the compact launcher composition', async ({
+  page,
+  isMobile
+}) => {
+  test.skip(!isMobile, 'mobile-only coverage');
+
+  await page.setViewportSize({ width: 375, height: 812 });
+  await gotoAndAssertOk(page, '/');
+
+  await expect(page.getByTestId('home-llm-mobile-launcher')).toBeVisible();
+  await expect(page.getByTestId('home-llm-prompt-row')).toHaveCount(0);
+
+  const layout = await page.evaluate(() => {
+    const docWidth = document.documentElement.clientWidth;
+    const docScrollWidth = document.documentElement.scrollWidth;
+    const pageShell = document.querySelector('[data-testid="page-shell"]');
+    const homeStack = document.querySelector('[data-testid="home-mobile-content"]');
+
+    const shellRect = pageShell?.getBoundingClientRect();
+    const stackRect = homeStack?.getBoundingClientRect();
+
+    return {
+      docWidth,
+      docScrollWidth,
+      shellRight: shellRect?.right ?? null,
+      stackRight: stackRect?.right ?? null
+    };
+  });
+
+  expect(layout.docScrollWidth).toBeLessThanOrEqual(layout.docWidth);
+  expect(layout.shellRight).not.toBeNull();
+  expect(layout.shellRight).toBeLessThanOrEqual(layout.docWidth);
+  expect(layout.stackRight).not.toBeNull();
+  expect(layout.stackRight).toBeLessThanOrEqual(layout.docWidth);
+});
+
 test('desktop main nav routes to all primary public pages', async ({ page, isMobile }) => {
   test.skip(isMobile, 'desktop-only coverage');
 
