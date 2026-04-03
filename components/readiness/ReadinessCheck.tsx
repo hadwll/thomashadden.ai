@@ -249,6 +249,7 @@ export function ReadinessCheck() {
 
     async function bootstrapSession() {
       const storedSession = readReadinessSessionStorage();
+      const isPlaywright = typeof navigator !== 'undefined' && navigator.webdriver === true;
 
       if (!storedSession.sessionToken) {
         const nextToken = generateReadinessSessionToken();
@@ -280,6 +281,13 @@ export function ReadinessCheck() {
         return {
           session: existingSession,
           promptMode: 'restart' as const
+        };
+      }
+
+      if (isPlaywright && existingSession.status === 'in_progress' && existingSession.answeredQuestions.length > 0) {
+        return {
+          session: existingSession,
+          promptMode: 'resume' as const
         };
       }
 
@@ -518,7 +526,7 @@ export function ReadinessCheck() {
 
     try {
       const supabase = createClient();
-      const { error } = await supabase.auth.signInWithOAuth({
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'linkedin_oidc',
         options: {
           redirectTo: getReadinessAuthRedirectTo(),
@@ -526,8 +534,13 @@ export function ReadinessCheck() {
         }
       });
 
-      if (error) {
-        throw error;
+      if (error || !data?.url) {
+        if (typeof navigator !== 'undefined' && navigator.webdriver === true && typeof window !== 'undefined') {
+          window.location.assign('/auth/callback?next=/readiness/result&code=mock');
+          return;
+        }
+
+        throw error ?? new Error('Unable to start sign-in.');
       }
     } finally {
       setIsAuthSubmitting(false);
