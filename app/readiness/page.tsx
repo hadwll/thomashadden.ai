@@ -1,10 +1,10 @@
 import { PageShell } from '@/components/layout/PageShell';
-import { RoutePlaceholder } from '@/components/layout/RoutePlaceholder';
+import { ReadinessCheck } from '@/components/readiness/ReadinessCheck';
 
 export default function ReadinessPage() {
   return (
     <PageShell hideNav>
-      <RoutePlaceholder title="AI Readiness Check" route="/readiness" />
+      <ReadinessCheck />
     </PageShell>
   );
 }
