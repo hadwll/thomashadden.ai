@@ -22,8 +22,16 @@ vi.mock('@/lib/llm/query', async () => {
 const HOMEPAGE_CHIPS = [
   'How can AI help an engineering business?',
   'What is Thomas working on?',
-  'Where does AI fit into industry?',
-  'What is RAG?'
+  'Where does AI fit into industry?'
+] as const;
+
+const STATIC_PREVIEW_BULLETS = [
+  'Automate repetitive reporting, data entry, and compliance documentation.',
+  'Improve quality control through computer vision and predictive analytics.',
+  'Optimise scheduling, resource allocation, and energy consumption.',
+  'Analyse operational data to identify cost savings and efficiency gains.',
+  'Enhance maintenance planning with condition-based monitoring.',
+  'Support faster, better-informed decision-making with real-time dashboards.'
 ] as const;
 
 const DEFAULT_SESSION_ID = '123e4567-e89b-12d3-a456-426614174000';
@@ -245,10 +253,14 @@ describe('LLMInterface homepage variant', () => {
       const chipRail = screen.getByTestId('home-llm-chip-rail');
       const chipButtons = within(chipRail).getAllByRole('button');
 
-      expect(chipButtons).toHaveLength(4);
+      expect(chipButtons).toHaveLength(3);
 
       for (const chipCopy of HOMEPAGE_CHIPS) {
         expect(within(chipRail).getByRole('button', { name: chipCopy })).toBeVisible();
+      }
+
+      for (const previewBullet of STATIC_PREVIEW_BULLETS) {
+        expect(screen.getByText(previewBullet)).toBeVisible();
       }
     });
 
@@ -256,7 +268,7 @@ describe('LLMInterface homepage variant', () => {
       renderDesktopHomepageLLM();
       const user = userEvent.setup();
 
-      await user.click(screen.getByRole('button', { name: 'What is RAG?' }));
+      await user.click(screen.getByRole('button', { name: 'Where does AI fit into industry?' }));
 
       await waitFor(() => {
         expect(fetchMock).toHaveBeenCalledTimes(1);
@@ -266,7 +278,7 @@ describe('LLMInterface homepage variant', () => {
       expect(String(requestUrl)).toContain('/api/llm/query');
 
       const submittedBody = JSON.parse(String(requestInit?.body ?? '{}')) as LLMQueryRequest;
-      expect(submittedBody.query).toBe('What is RAG?');
+      expect(submittedBody.query).toBe('Where does AI fit into industry?');
       expect(submittedBody.context?.source).toBe('homepage_chip');
       expect(mockedGetOrCreateLLMSession).toHaveBeenCalled();
     });

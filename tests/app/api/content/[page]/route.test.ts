@@ -24,7 +24,7 @@ function expectMeta(meta: unknown) {
 }
 
 describe('GET /api/content/[page] contract', () => {
-  it.each(['home', 'about', 'projects', 'research', 'insights'])(
+  it.each(['home', 'about', 'projects', 'research', 'insights', 'contact'])(
     'supports valid public page segment: %s',
     async (page) => {
       const { response, body } = await invoke(page);
@@ -38,9 +38,11 @@ describe('GET /api/content/[page] contract', () => {
   it('returns content-page response for home and about', async () => {
     const home = await invoke('home');
     const about = await invoke('about');
+    const contact = await invoke('contact');
 
     expect(home.body.data).toMatchObject({ page: 'home' });
     expect(about.body.data).toMatchObject({ page: 'about' });
+    expect(contact.body.data).toMatchObject({ page: 'contact' });
   });
 
   it('returns list content for projects and research', async () => {
@@ -82,8 +84,8 @@ describe('GET /api/content/[page] contract', () => {
   });
 
   it.each([
-    ['projects', 'example-project'],
-    ['research', 'example-research'],
+    ['projects', 'servo-drive-upgrade-wastewater'],
+    ['research', 'bearing-fault-detection-wavelet'],
     ['insights', 'example-insight']
   ])('supports slug detail lookup for %s', async (page, slug) => {
     const { response, body } = await invoke(page, `?slug=${slug}`);
@@ -120,7 +122,8 @@ describe('GET /api/content/[page] contract', () => {
   it.each([
     ['home', '?featured=true'],
     ['about', '?page=1&perPage=10'],
-    ['projects', '?slug=example-project&featured=true']
+    ['projects', '?slug=servo-drive-upgrade-wastewater&featured=true'],
+    ['contact', '?slug=contact-intro']
   ])('returns 422 VALIDATION_ERROR for invalid query combination: %s %s', async (page, query) => {
     const { response, body } = await invoke(page, query);
 

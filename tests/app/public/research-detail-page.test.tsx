@@ -14,12 +14,13 @@ vi.mock('next/navigation', () => ({
 }));
 
 const RESEARCH_DETAIL = {
-  id: 'agentic-operations-industrial-control',
-  title: 'Agentic Operations in Industrial Control',
-  slug: 'agentic-operations-industrial-control',
-  summary: 'Detailed findings from reliability-focused industrial R&D work.',
+  id: 'bearing-fault-detection-wavelet',
+  title: 'Bearing Fault Detection Using Wavelet Methods and Machine Learning',
+  slug: 'bearing-fault-detection-wavelet',
+  summary:
+    'Research into detecting roller element bearing faults using wavelet decomposition and unsupervised machine learning.',
   updatedAt: '2026-03-15T10:30:00Z',
-  theme: 'Industrial Automation'
+  theme: 'Applied AI'
 };
 
 async function renderResearchDetail(slug: string) {
@@ -39,9 +40,9 @@ describe('/research/[slug] detail page contract', () => {
       lastUpdated: '2026-03-15T10:30:00Z'
     });
 
-    await renderResearchDetail('agentic-operations-industrial-control');
+    await renderResearchDetail('bearing-fault-detection-wavelet');
 
-    expect(contentApi.getResearchContent).toHaveBeenCalledWith({ slug: 'agentic-operations-industrial-control' });
+    expect(contentApi.getResearchContent).toHaveBeenCalledWith({ slug: 'bearing-fault-detection-wavelet' });
   });
 
   it('renders title, detail copy, and a back link to /research', async () => {
@@ -52,7 +53,7 @@ describe('/research/[slug] detail page contract', () => {
       lastUpdated: '2026-03-15T10:30:00Z'
     });
 
-    await renderResearchDetail('agentic-operations-industrial-control');
+    await renderResearchDetail('bearing-fault-detection-wavelet');
 
     const main = screen.getByTestId('shell-main-content');
     expect(within(main).getByRole('heading', { level: 1, name: RESEARCH_DETAIL.title })).toBeInTheDocument();
@@ -81,7 +82,7 @@ describe('/research/[slug] detail page contract', () => {
       lastUpdated: '2026-03-15T10:30:00Z'
     });
 
-    await renderResearchDetail('agentic-operations-industrial-control');
+    await renderResearchDetail('bearing-fault-detection-wavelet');
 
     expect(screen.queryByText('Placeholder route for SPR-01 bootstrap.')).not.toBeInTheDocument();
   });

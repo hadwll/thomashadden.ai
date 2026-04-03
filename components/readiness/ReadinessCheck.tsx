@@ -79,7 +79,7 @@ function getProgressQuestionIndex(currentQuestionIndex: number, questionCount: n
   return Math.min(currentQuestionIndex + 1, questionCount);
 }
 
-function normalizeReadinessSessionState(session: ReadinessSessionResponse['data']): ReadinessSessionState | null {
+function normalizeReadinessSessionState(session: ReadinessSessionResponse['data'] | null): ReadinessSessionState | null {
   if (!session) {
     return null;
   }
@@ -209,7 +209,7 @@ export function ReadinessCheck() {
         const nextSession = await createSession(nextToken);
         return {
           session: nextSession,
-          promptMode: null as const
+          promptMode: null
         };
       }
 
@@ -225,7 +225,7 @@ export function ReadinessCheck() {
         const nextSession = await createSession(nextToken);
         return {
           session: nextSession,
-          promptMode: null as const
+          promptMode: null
         };
       }
 
@@ -238,7 +238,7 @@ export function ReadinessCheck() {
 
       return {
         session: existingSession,
-        promptMode: null as const
+        promptMode: null
       };
     }
 

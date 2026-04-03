@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { PUBLIC_CONTENT_PAGE_KEYS } from '@/lib/content/types';
 import type {
   ContentPageResponse,
   PaginatedContentResponse,
@@ -21,43 +22,65 @@ type PublicItemHasNoForbiddenFields =
 const assertPublicItemFieldBoundary: Assert<PublicItemHasNoForbiddenFields> = true;
 void assertPublicItemFieldBoundary;
 
-const BASE_ITEM: PublicContentItem = {
-  id: 'connected-ai',
-  title: 'Connected AI',
-  slug: 'connected-ai',
-  summary: 'AI-driven connectivity for engineering environments.',
-  updatedAt: '2026-03-01T00:00:00Z',
-  tags: ['AI', 'Engineering'],
-  status: 'active',
-  category: 'industrial-ai',
-  theme: 'automation',
-  location: 'Belfast',
-  publishedAt: '2026-03-02T00:00:00Z',
-  featured: true,
-  imageUrl: '/images/projects/connected-ai.jpg'
+const APPROVED_PROJECT_ITEM: PublicContentItem = {
+  id: 'servo-drive-upgrade-wastewater',
+  title: 'Servo Drive Upgrade for Wastewater Treatment',
+  slug: 'servo-drive-upgrade-wastewater',
+  summary: 'A full servo control system upgrade on an automated sludge press used in wastewater treatment.',
+  updatedAt: '2026-03-17T10:30:00Z',
+  tags: ['Siemens S120', 'Water Treatment'],
+  status: 'completed',
+  category: 'Industrial Automation',
+  location: 'Northern Ireland',
+  featured: true
+};
+
+const APPROVED_RESEARCH_ITEM: PublicContentItem = {
+  id: 'bearing-fault-detection-wavelet',
+  title: 'Bearing Fault Detection Using Wavelet Methods and Machine Learning',
+  slug: 'bearing-fault-detection-wavelet',
+  summary: 'Research into detecting roller element bearing faults using wavelet decomposition.',
+  updatedAt: '2026-03-14T10:30:00Z',
+  tags: ['Condition Monitoring', 'Machine Learning'],
+  status: 'completed',
+  theme: 'Applied AI',
+  featured: true
+};
+
+const CONTACT_ITEM: PublicContentItem = {
+  id: 'contact-intro',
+  title: 'Contact Introduction',
+  slug: 'contact-intro',
+  summary: 'If you are thinking about where AI fits in your business, I would like to hear from you.',
+  updatedAt: '2026-03-12T10:30:00Z'
 };
 
 describe('public content model contracts', () => {
+  it('exposes contact in the canonical public page key set', () => {
+    expect(PUBLIC_CONTENT_PAGE_KEYS).toEqual(['home', 'about', 'projects', 'research', 'insights', 'contact']);
+  });
+
   it('supports a shared content item shape for public cards and rows', () => {
-    expect(BASE_ITEM.id).toBe('connected-ai');
-    expect(BASE_ITEM.title).toBeTruthy();
-    expect(BASE_ITEM.slug).toBeTruthy();
-    expect(BASE_ITEM.summary).toBeTruthy();
-    expect(BASE_ITEM.updatedAt).toMatch(/\d{4}-\d{2}-\d{2}/);
-    expect(BASE_ITEM.tags).toEqual(expect.arrayContaining(['AI']));
-    expect(BASE_ITEM.featured).toBe(true);
+    expect(APPROVED_PROJECT_ITEM.id).toBe('servo-drive-upgrade-wastewater');
+    expect(APPROVED_PROJECT_ITEM.title).toBeTruthy();
+    expect(APPROVED_PROJECT_ITEM.slug).toBeTruthy();
+    expect(APPROVED_PROJECT_ITEM.summary).toBeTruthy();
+    expect(APPROVED_PROJECT_ITEM.updatedAt).toMatch(/\d{4}-\d{2}-\d{2}/);
+    expect(APPROVED_PROJECT_ITEM.tags).toEqual(expect.arrayContaining(['Siemens S120']));
+    expect(APPROVED_PROJECT_ITEM.featured).toBe(true);
+    expect(APPROVED_RESEARCH_ITEM.slug).toBe('bearing-fault-detection-wavelet');
   });
 
   it('models the page response envelope as page/title/sections/lastUpdated', () => {
     const response: ContentPageResponse = {
-      page: 'projects',
-      title: 'Projects',
-      sections: [BASE_ITEM],
+      page: 'contact',
+      title: 'Contact',
+      sections: [CONTACT_ITEM],
       lastUpdated: '2026-03-15T10:30:00Z'
     };
 
-    expect(response.page).toBe('projects');
-    expect(response.title).toBe('Projects');
+    expect(response.page).toBe('contact');
+    expect(response.title).toBe('Contact');
     expect(response.sections).toHaveLength(1);
     expect(response.lastUpdated).toMatch(/\d{4}-\d{2}-\d{2}/);
   });
@@ -68,7 +91,7 @@ describe('public content model contracts', () => {
       perPage: 10,
       total: 42,
       totalPages: 5,
-      sections: [BASE_ITEM]
+      sections: [APPROVED_PROJECT_ITEM]
     };
 
     expect(response.page).toBe(1);
@@ -76,8 +99,8 @@ describe('public content model contracts', () => {
     expect(response.total).toBe(42);
     expect(response.totalPages).toBe(5);
     expect(response.sections[0]).toMatchObject({
-      id: BASE_ITEM.id,
-      slug: BASE_ITEM.slug
+      id: APPROVED_PROJECT_ITEM.id,
+      slug: APPROVED_PROJECT_ITEM.slug
     });
   });
 
@@ -85,7 +108,7 @@ describe('public content model contracts', () => {
     const found: ContentPageResponse = {
       page: 'projects',
       title: 'Projects',
-      sections: [BASE_ITEM],
+      sections: [APPROVED_PROJECT_ITEM],
       lastUpdated: '2026-03-15T10:30:00Z'
     };
 
@@ -101,10 +124,10 @@ describe('public content model contracts', () => {
   });
 
   it('does not leak readiness, auth, or contact-only fields on public content items', () => {
-    expect(Object.keys(BASE_ITEM)).not.toEqual(expect.arrayContaining(['score', 'resultScore']));
-    expect(Object.keys(BASE_ITEM)).not.toEqual(
+    expect(Object.keys(APPROVED_PROJECT_ITEM)).not.toEqual(expect.arrayContaining(['score', 'resultScore']));
+    expect(Object.keys(APPROVED_PROJECT_ITEM)).not.toEqual(
       expect.arrayContaining(['readinessSessionId', 'sessionToken', 'userId'])
     );
-    expect(Object.keys(BASE_ITEM)).not.toEqual(expect.arrayContaining(['email', 'honeypot']));
+    expect(Object.keys(APPROVED_PROJECT_ITEM)).not.toEqual(expect.arrayContaining(['email', 'honeypot']));
   });
 });

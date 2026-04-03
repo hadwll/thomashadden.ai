@@ -5,24 +5,86 @@ import type { PublicContentItem } from '@/lib/content/types';
 const HOME_ITEMS: PublicContentItem[] = [
   {
     id: 'home-1',
-    title: 'Featured Item One',
-    slug: 'featured-item-one',
-    summary: 'Fixture content for home composition tests.',
-    updatedAt: '2026-02-20'
+    title: 'About Thomas',
+    slug: 'home-about-teaser',
+    summary:
+      'Thomas Hadden is an engineer and applied AI researcher based in Northern Ireland. He works at Park Electrical Belfast as a Siemens automation specialist, delivering control system upgrades and technical solutions for water treatment and process industries. Alongside his commercial role, he is undertaking a part-time PhD at Ulster University, investigating how AI and digital twin technologies can be applied to real-world industrial control. Industrial Analytics & Automation is his independent platform for technical projects and research.',
+    updatedAt: '2026-03-20'
   },
   {
     id: 'home-2',
-    title: 'Featured Item Two',
-    slug: 'featured-item-two',
-    summary: 'Fixture content for home composition tests.',
-    updatedAt: '2026-02-21'
+    title: 'How AI-ready is your business?',
+    slug: 'home-readiness',
+    summary: 'A practical two-minute diagnostic to identify realistic AI next steps.',
+    updatedAt: '2026-03-20'
+  }
+];
+
+const FEATURED_PROJECTS: PublicContentItem[] = [
+  {
+    id: 'servo-drive-upgrade-wastewater',
+    title: 'Servo Drive Upgrade for Wastewater Treatment',
+    slug: 'servo-drive-upgrade-wastewater',
+    summary: 'A full servo control system upgrade on an automated sludge press used in wastewater treatment.',
+    updatedAt: '2026-03-17',
+    category: 'Industrial Automation',
+    status: 'completed',
+    featured: true
   },
   {
-    id: 'home-3',
-    title: 'Featured Item Three',
-    slug: 'featured-item-three',
+    id: 'alpr-vehicle-tracking',
+    title: 'Automatic Licence Plate Recognition System',
+    slug: 'alpr-vehicle-tracking',
+    summary: 'A bespoke Automatic Licence Plate Recognition system designed and built for a waste management and land regeneration business.',
+    updatedAt: '2026-03-16',
+    category: 'Applied AI',
+    status: 'completed',
+    featured: true
+  }
+];
+
+const RESEARCH_ITEMS: PublicContentItem[] = [
+  {
+    id: 'bearing-fault-detection-wavelet',
+    title: 'Bearing Fault Detection Using Wavelet Methods and Machine Learning',
+    slug: 'bearing-fault-detection-wavelet',
+    summary: 'Research into detecting roller element bearing faults using wavelet decomposition.',
+    updatedAt: '2026-03-14',
+    theme: 'Applied AI',
+    featured: true
+  },
+  {
+    id: 'phd-ai-process-control',
+    title: 'AI-Driven Innovation in Industrial and Process Control Systems',
+    slug: 'phd-ai-process-control',
+    summary: 'A part-time PhD at Ulster University investigating how reinforcement learning and digital twin methodologies can be applied to real-world industrial process control.',
+    updatedAt: '2026-03-13',
+    theme: 'Industrial AI',
+    featured: true
+  }
+];
+
+const INSIGHT_ITEMS: PublicContentItem[] = [
+  {
+    id: 'insight-1',
+    title: 'Insight One',
+    slug: 'insight-one',
     summary: 'Fixture content for home composition tests.',
-    updatedAt: '2026-02-22'
+    updatedAt: '2026-03-12'
+  },
+  {
+    id: 'insight-2',
+    title: 'Insight Two',
+    slug: 'insight-two',
+    summary: 'Fixture content for home composition tests.',
+    updatedAt: '2026-03-11'
+  },
+  {
+    id: 'insight-3',
+    title: 'Insight Three',
+    slug: 'insight-three',
+    summary: 'Fixture content for home composition tests.',
+    updatedAt: '2026-03-10'
   }
 ];
 
@@ -36,25 +98,25 @@ vi.mock('@/lib/content/api', () => ({
   getProjectsContent: vi.fn(async () => ({
     page: 'projects',
     title: 'Projects',
-    sections: HOME_ITEMS,
+    sections: FEATURED_PROJECTS,
     lastUpdated: '2026-02-28'
   })),
   getResearchContent: vi.fn(async () => ({
     page: 'research',
     title: 'Research',
-    sections: HOME_ITEMS,
+    sections: RESEARCH_ITEMS,
     lastUpdated: '2026-02-28'
   })),
   getInsightsContent: vi.fn(async () => ({
     page: 1,
     perPage: 10,
-    total: HOME_ITEMS.length,
+    total: INSIGHT_ITEMS.length,
     totalPages: 1,
     title: 'Insights',
-    sections: HOME_ITEMS,
+    sections: INSIGHT_ITEMS,
     lastUpdated: '2026-02-28',
     pagination: {
-      total: HOME_ITEMS.length,
+      total: INSIGHT_ITEMS.length,
       page: 1,
       perPage: 10,
       totalPages: 1
@@ -80,6 +142,13 @@ describe('HomePage public composition contract', () => {
     expect(within(desktopContent).getByRole('heading', { name: 'Latest Insights' })).toBeInTheDocument();
     expect(
       within(desktopContent).getByRole('heading', { name: 'How AI-ready is your business?' })
+    ).toBeInTheDocument();
+    expect(
+      within(desktopContent).getByText(/engineer and applied AI researcher based in Northern Ireland/i)
+    ).toBeInTheDocument();
+    expect(within(desktopContent).getByText('Servo Drive Upgrade for Wastewater Treatment')).toBeInTheDocument();
+    expect(
+      within(desktopContent).getByText('Bearing Fault Detection Using Wavelet Methods and Machine Learning')
     ).toBeInTheDocument();
   });
 

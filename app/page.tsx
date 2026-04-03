@@ -17,6 +17,11 @@ function buildAboutParagraphs(
   aboutContent: ContentPageResponse,
   homeContent: ContentPageResponse
 ): AboutTeaserProps['paragraphs'] {
+  const homeSummary = homeContent.sections[0]?.summary?.trim();
+  if (homeSummary) {
+    return [homeSummary];
+  }
+
   const paragraphs: string[] = [];
 
   for (const section of aboutContent.sections) {

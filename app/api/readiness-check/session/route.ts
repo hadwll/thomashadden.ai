@@ -1,5 +1,9 @@
 import { NextResponse } from 'next/server';
-import { createOrGetReadinessSession, READINESS_TOTAL_QUESTIONS } from '@/lib/readiness/session-store';
+import {
+  createOrGetReadinessSession,
+  READINESS_TOTAL_QUESTIONS,
+  type ReadinessSessionStatus
+} from '@/lib/readiness/session-store';
 
 type ErrorCode = 'VALIDATION_ERROR' | 'INTERNAL_ERROR';
 
@@ -32,7 +36,7 @@ function error(status: number, code: ErrorCode, message: string, details?: Recor
   );
 }
 
-function ok(sessionToken: string, status: 'in_progress' | 'abandoned') {
+function ok(sessionToken: string, status: ReadinessSessionStatus) {
   return NextResponse.json(
     {
       success: true,

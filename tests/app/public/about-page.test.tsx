@@ -12,10 +12,10 @@ const ABOUT_SECTIONS = [
     title: 'About Thomas',
     slug: 'about-thomas',
     summary:
-      'Thomas Hadden builds applied AI systems for industrial environments.\n\nAt Park Electrical Belfast, he focuses on automation delivery tied to engineering outcomes.\n\nIndustrial Analytics & Automation (IA&A) is his platform for practical research and collaboration.',
+      'Thomas Hadden is an engineer and applied AI researcher based in Northern Ireland. He works at the intersection of industrial automation, process control, and artificial intelligence, with a focus on making these technologies practical, safe, and useful in real operational environments.\n\nThomas currently holds two roles. As an Application Engineer at Park Electrical Belfast, he works within the Automation Department as a Siemens specialist, delivering advanced control system design, servo drive upgrades, and automation solutions for clients across water treatment, wastewater, and process industries. He works closely with integrators, end users, and Siemens technical teams to specify, validate, and commission systems that meet demanding requirements for reliability and long-term supportability.\n\nAlongside his role at Park, Thomas is undertaking a part-time PhD at Ulster University. The research programme - AI-Driven Innovation in Industrial and Process Control Systems (AIPCon) - investigates how reinforcement learning and digital twin methodologies can be applied to real-world process control, with a particular emphasis on the gap between academic theory and industrial adoption.',
     updatedAt: '2026-03-15T10:30:00Z',
-    tags: ['Industrial AI', 'Automation'],
-    location: 'Park Electrical Belfast'
+    tags: ['Park Electrical Belfast', 'Ulster University'],
+    location: 'Northern Ireland'
   }
 ];
 
@@ -49,9 +49,9 @@ describe('/about page contract', () => {
 
     const main = screen.getByTestId('shell-main-content');
     expect(within(main).getByRole('heading', { level: 1, name: 'About' })).toBeInTheDocument();
-    expect(within(main).getByText(/Thomas Hadden builds applied AI systems/i)).toBeInTheDocument();
-    expect(within(main).getByText(/Park Electrical Belfast/i)).toBeInTheDocument();
-    expect(within(main).getByText(/Industrial Analytics & Automation/i)).toBeInTheDocument();
+    expect(within(main).getByText(/engineer and applied AI researcher based in Northern Ireland/i)).toBeInTheDocument();
+    expect(within(main).getByText(/servo drive upgrades/i)).toBeInTheDocument();
+    expect(within(main).getByText(/AIPCon/i)).toBeInTheDocument();
   });
 
   it('does not keep RoutePlaceholder copy once the page is implemented', async () => {

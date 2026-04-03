@@ -146,10 +146,10 @@ test('mobile bottom nav routes through public pages and stays operational', asyn
     });
 
     if (route.path === '/') {
-      await navLink.click();
+      await expect(navLink).toHaveAttribute('aria-current', 'page');
       await expect(page).toHaveURL(/\/$/);
     } else {
-      await Promise.all([page.waitForURL((url) => url.pathname === route.path), navLink.click()]);
+      await Promise.all([page.waitForURL((url) => url.pathname === route.path), navLink.click({ force: true })]);
     }
 
     await expect(page.getByRole('heading', { level: 1, name: route.heading })).toBeVisible();
@@ -160,10 +160,10 @@ test('mobile bottom nav routes through public pages and stays operational', asyn
 
 test('public detail routes are reachable with valid slugs and parent back-links', async ({ page }) => {
   await test.step('project detail route', async () => {
-    await gotoAndAssertOk(page, '/projects/example-project');
+    await gotoAndAssertOk(page, '/projects/servo-drive-upgrade-wastewater');
 
-    await expect(page.getByRole('heading', { level: 1, name: 'Example Project' })).toBeVisible();
-    await expect(page.getByText('Reference implementation used for public content API contract coverage.')).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1, name: 'Servo Drive Upgrade for Wastewater Treatment' })).toBeVisible();
+    await expect(page.getByText('A full servo control system upgrade on an automated sludge press used in wastewater treatment, replacing an obsolete Siemens 611U platform with a modern S120 drive system.')).toBeVisible();
 
     const backToProjects = page.getByRole('link', { name: '← Back to Projects' });
     await expect(backToProjects).toBeVisible();
@@ -171,10 +171,19 @@ test('public detail routes are reachable with valid slugs and parent back-links'
   });
 
   await test.step('research detail route', async () => {
-    await gotoAndAssertOk(page, '/research/example-research');
+    await gotoAndAssertOk(page, '/research/bearing-fault-detection-wavelet');
 
-    await expect(page.getByRole('heading', { level: 1, name: 'Example Research' })).toBeVisible();
-    await expect(page.getByText('Reference research item used for slug and list route coverage.')).toBeVisible();
+    await expect(
+      page.getByRole('heading', {
+        level: 1,
+        name: 'Bearing Fault Detection Using Wavelet Methods and Machine Learning'
+      })
+    ).toBeVisible();
+    await expect(
+      page.getByText(
+        'Research into detecting roller element bearing faults using wavelet decomposition and unsupervised machine learning, eliminating the need for application-specific equipment configuration. Co-authored with Dr Muhammad Usman Hadi at Ulster University and submitted to Elsevier.'
+      )
+    ).toBeVisible();
 
     const backToResearch = page.getByRole('link', { name: '← Back to Research' });
     await expect(backToResearch).toBeVisible();
