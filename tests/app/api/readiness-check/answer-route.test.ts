@@ -158,18 +158,24 @@ describe('POST /api/readiness-check/answer contract', () => {
     expectMeta(payload.meta);
   });
 
-  it.each([
-    ['missing session token', { questionId: QUESTION_1.id, optionId: QUESTION_1.options[0].id }],
-    [
-      'unknown session token',
-      {
-        sessionToken: UNKNOWN_SESSION_TOKEN,
-        questionId: QUESTION_1.id,
-        optionId: QUESTION_1.options[0].id
-      }
-    ]
-  ])('returns 404 NOT_FOUND for %s', async (_label, body) => {
-    const { response, payload } = await invokeAnswer(body);
+  it('returns 422 VALIDATION_ERROR for a missing session token', async () => {
+    const { response, payload } = await invokeAnswer({
+      questionId: QUESTION_1.id,
+      optionId: QUESTION_1.options[0].id
+    });
+
+    expect(response.status).toBe(422);
+    expect(payload.success).toBe(false);
+    expect(payload.error).toMatchObject({ code: 'VALIDATION_ERROR' });
+    expectMeta(payload.meta);
+  });
+
+  it('returns 404 NOT_FOUND for an unknown session token with valid shape', async () => {
+    const { response, payload } = await invokeAnswer({
+      sessionToken: UNKNOWN_SESSION_TOKEN,
+      questionId: QUESTION_1.id,
+      optionId: QUESTION_1.options[0].id
+    });
 
     expect(response.status).toBe(404);
     expect(payload.success).toBe(false);

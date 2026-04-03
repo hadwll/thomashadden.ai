@@ -34,7 +34,7 @@ type ReadinessQuestionsResponse = {
   data?: ReadinessQuestionSet;
 };
 
-type ReadinessSessionStatus = 'in_progress' | 'abandoned';
+type ReadinessSessionStatus = 'in_progress' | 'abandoned' | 'completed';
 
 type ReadinessSessionState = {
   sessionToken: string;
@@ -49,10 +49,19 @@ type ReadinessSessionResponse = {
   data?: ReadinessSessionState;
 };
 
+type ReadinessAnswerResponse = {
+  success: boolean;
+  data?: {
+    answeredCount: number;
+    isComplete: boolean;
+  };
+};
+
 type BootstrapMode = 'loading' | 'ready' | 'prompt' | 'error';
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const SAFE_ERROR_MESSAGE = "We're unable to load the readiness check right now. Please try again.";
+const SAFE_ANSWER_ERROR_MESSAGE = "We couldn't save that answer right now. Please try again.";
 
 export function ReadinessCheck() {
   const [questionSet, setQuestionSet] = useState<ReadinessQuestionSet | null>(null);
@@ -60,7 +69,14 @@ export function ReadinessCheck() {
   const [bootstrapMode, setBootstrapMode] = useState<BootstrapMode>('loading');
   const [promptMode, setPromptMode] = useState<'resume' | 'restart' | null>(null);
   const [isRestarting, setIsRestarting] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [bootstrapErrorMessage, setBootstrapErrorMessage] = useState<string | null>(null);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null);
+  const [isSubmittingAnswer, setIsSubmittingAnswer] = useState(false);
+  const [hasConfirmedAnswer, setHasConfirmedAnswer] = useState(false);
+  const [isResultsReady, setIsResultsReady] = useState(false);
+  const [showResultsPanel, setShowResultsPanel] = useState(false);
+  const [answerErrorMessage, setAnswerErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
     let isActive = true;
@@ -159,9 +175,16 @@ export function ReadinessCheck() {
         };
       }
 
+      if (existingSession.status === 'abandoned') {
+        return {
+          session: existingSession,
+          promptMode: 'restart' as const
+        };
+      }
+
       return {
         session: existingSession,
-        promptMode: existingSession.status === 'abandoned' ? ('restart' as const) : ('resume' as const)
+        promptMode: null as const
       };
     }
 
@@ -179,7 +202,7 @@ export function ReadinessCheck() {
             return;
           }
 
-          setErrorMessage(SAFE_ERROR_MESSAGE);
+          setBootstrapErrorMessage(SAFE_ERROR_MESSAGE);
           setQuestionSet(null);
           setSessionState(null);
           setPromptMode(null);
@@ -201,7 +224,7 @@ export function ReadinessCheck() {
             return;
           }
 
-          setErrorMessage(SAFE_ERROR_MESSAGE);
+          setBootstrapErrorMessage(SAFE_ERROR_MESSAGE);
           setQuestionSet(null);
           setSessionState(null);
           setPromptMode(null);
@@ -215,6 +238,25 @@ export function ReadinessCheck() {
       isActive = false;
     };
   }, []);
+
+  useEffect(() => {
+    if (bootstrapMode !== 'ready' || !questionSet || !sessionState) {
+      return;
+    }
+
+    const nextQuestionIndex =
+      sessionState.status === 'completed'
+        ? Math.max(questionSet.questions.length - 1, 0)
+        : Math.min(sessionState.nextQuestionIndex, Math.max(questionSet.questions.length - 1, 0));
+
+    setCurrentQuestionIndex(nextQuestionIndex);
+    setSelectedOptionId(null);
+    setIsSubmittingAnswer(false);
+    setHasConfirmedAnswer(sessionState.status === 'completed');
+    setAnswerErrorMessage(null);
+    setIsResultsReady(sessionState.status === 'completed');
+    setShowResultsPanel(false);
+  }, [bootstrapMode, questionSet, sessionState?.sessionToken]);
 
   async function restartSession() {
     setIsRestarting(true);
@@ -240,8 +282,15 @@ export function ReadinessCheck() {
       setSessionState(payload.data);
       setPromptMode(null);
       setBootstrapMode('ready');
+      setCurrentQuestionIndex(0);
+      setSelectedOptionId(null);
+      setIsSubmittingAnswer(false);
+      setHasConfirmedAnswer(false);
+      setIsResultsReady(false);
+      setShowResultsPanel(false);
+      setAnswerErrorMessage(null);
     } catch {
-      setErrorMessage(SAFE_ERROR_MESSAGE);
+      setBootstrapErrorMessage(SAFE_ERROR_MESSAGE);
       setQuestionSet(null);
       setSessionState(null);
       setPromptMode(null);
@@ -249,6 +298,85 @@ export function ReadinessCheck() {
     } finally {
       setIsRestarting(false);
     }
+  }
+
+  async function submitAnswer(optionId: string) {
+    if (!questionSet || !sessionState || isSubmittingAnswer || hasConfirmedAnswer) {
+      return;
+    }
+
+    const currentQuestion = questionSet.questions[currentQuestionIndex];
+    if (!currentQuestion) {
+      return;
+    }
+
+    setSelectedOptionId(optionId);
+    setIsSubmittingAnswer(true);
+    setAnswerErrorMessage(null);
+
+    try {
+      const response = await fetch('/api/readiness-check/answer', {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json'
+        },
+        body: JSON.stringify({
+          sessionToken: sessionState.sessionToken,
+          questionId: currentQuestion.id,
+          optionId
+        })
+      });
+
+      const payload = (await response.json().catch(() => null)) as ReadinessAnswerResponse | null;
+      if (!response.ok || !payload?.success || !payload.data) {
+        throw new Error('Answer submission failed.');
+      }
+
+      const answeredCount = payload.data.answeredCount;
+      setSessionState((previousSession) => {
+        if (!previousSession) {
+          return previousSession;
+        }
+
+        return {
+          ...previousSession,
+          answeredQuestions: Array.from({ length: answeredCount }, (_, index) => index),
+          nextQuestionIndex: payload.data?.isComplete ? questionSet.questions.length : answeredCount,
+          status: payload.data?.isComplete ? 'completed' : previousSession.status
+        };
+      });
+
+      setHasConfirmedAnswer(true);
+      setIsResultsReady(Boolean(payload.data.isComplete));
+      setShowResultsPanel(false);
+      if (payload.data.isComplete) {
+        setCurrentQuestionIndex(Math.max(questionSet.questions.length - 1, 0));
+      }
+    } catch {
+      setAnswerErrorMessage(SAFE_ANSWER_ERROR_MESSAGE);
+      setHasConfirmedAnswer(false);
+      setIsResultsReady(false);
+    } finally {
+      setIsSubmittingAnswer(false);
+    }
+  }
+
+  function handleAdvance() {
+    if (!questionSet || !hasConfirmedAnswer) {
+      return;
+    }
+
+    if (isResultsReady) {
+      setShowResultsPanel(true);
+      return;
+    }
+
+    setCurrentQuestionIndex((previousIndex) =>
+      Math.min(previousIndex + 1, Math.max(questionSet.questions.length - 1, 0))
+    );
+    setSelectedOptionId(null);
+    setHasConfirmedAnswer(false);
+    setAnswerErrorMessage(null);
   }
 
   if (bootstrapMode === 'loading' || (bootstrapMode === 'ready' && !questionSet)) {
@@ -261,7 +389,7 @@ export function ReadinessCheck() {
     );
   }
 
-  if (bootstrapMode === 'error' || errorMessage || !questionSet) {
+  if (bootstrapMode === 'error' || bootstrapErrorMessage || !questionSet) {
     return (
       <section className="mx-auto flex min-h-[70vh] w-full max-w-content items-center px-4 py-12 sm:px-6 lg:px-8">
         <div
@@ -269,7 +397,9 @@ export function ReadinessCheck() {
           className="w-full rounded-content border border-border-default bg-bg-surface p-6 shadow-card sm:p-8"
         >
           <h1 className="text-h3 font-semibold text-text-primary">AI Readiness Check</h1>
-          <p className="mt-3 text-sm leading-6 text-text-secondary">{errorMessage ?? SAFE_ERROR_MESSAGE}</p>
+          <p className="mt-3 text-sm leading-6 text-text-secondary">
+            {bootstrapErrorMessage ?? SAFE_ERROR_MESSAGE}
+          </p>
         </div>
       </section>
     );
@@ -331,7 +461,24 @@ export function ReadinessCheck() {
     );
   }
 
-  const firstQuestion = questionSet.questions[0];
+  if (showResultsPanel) {
+    return (
+      <section className="mx-auto w-full max-w-content px-4 pb-12 pt-6 sm:px-6 lg:px-8">
+        <div className="rounded-content border border-border-default bg-bg-surface/95 p-6 shadow-card sm:p-8">
+          <div className="space-y-3">
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-text-muted">AI Readiness Check</p>
+            <h1 className="text-h2 font-bold text-text-primary">Your results are ready</h1>
+            <p className="text-sm leading-6 text-text-secondary">
+              We&apos;ve finished the assessment. Your score will appear after the auth step in the next ticket slice.
+            </p>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  const currentQuestion = questionSet.questions[currentQuestionIndex] ?? questionSet.questions[0];
+  const isFinalQuestion = currentQuestionIndex >= questionSet.questions.length - 1;
 
   return (
     <section className="mx-auto w-full max-w-content px-4 pb-12 pt-6 sm:px-6 lg:px-8">
@@ -344,18 +491,60 @@ export function ReadinessCheck() {
           </p>
         </div>
 
+        {answerErrorMessage ? (
+          <div
+            role="alert"
+            className="mt-6 rounded-content border border-border-default bg-bg-primary/80 p-4 text-sm leading-6 text-text-secondary"
+          >
+            {answerErrorMessage}
+          </div>
+        ) : null}
+
+        {isResultsReady ? (
+          <div className="mt-6 rounded-content border border-border-default bg-bg-primary/80 p-5 sm:p-6">
+            <p className="text-lg font-semibold leading-7 text-text-primary">Your results are ready</p>
+            <p className="mt-3 text-sm leading-6 text-text-secondary">
+              We&apos;ve captured your answers. Tap below to continue to the next step.
+            </p>
+          </div>
+        ) : null}
+
         <div className="mt-8 space-y-6">
-          <p className="text-lg font-semibold leading-7 text-text-primary">{firstQuestion.text}</p>
+          <p className="text-lg font-semibold leading-7 text-text-primary">{currentQuestion.text}</p>
           <ul className="grid gap-3 sm:grid-cols-2">
-            {firstQuestion.options.map((option) => (
-              <li
-                key={option.id}
-                className="rounded-control border border-border-default bg-bg-primary px-4 py-3 text-sm font-medium text-text-primary"
-              >
-                {option.label}
-              </li>
-            ))}
+            {currentQuestion.options.map((option) => {
+              const isSelected = selectedOptionId === option.id;
+
+              return (
+                <li key={option.id}>
+                  <Button
+                    variant={isSelected ? 'primary' : 'secondary'}
+                    onClick={() => {
+                      void submitAnswer(option.id);
+                    }}
+                    fullWidth
+                    size="lg"
+                    disabled={isSubmittingAnswer || hasConfirmedAnswer}
+                    loading={isSubmittingAnswer && isSelected}
+                  >
+                    {option.label}
+                  </Button>
+                </li>
+              );
+            })}
           </ul>
+
+          <div className="flex justify-end">
+            <Button
+              onClick={() => {
+                handleAdvance();
+              }}
+              disabled={!hasConfirmedAnswer}
+              size="lg"
+            >
+              {isFinalQuestion ? 'See my results' : 'Next'}
+            </Button>
+          </div>
         </div>
       </div>
     </section>
