@@ -34,6 +34,8 @@ const ROUTE_CASES: RouteCase[] = [
   { route: '/cookies', heading: 'Cookie Policy', Component: CookiesPage }
 ];
 
+const PLACEHOLDER_ROUTE_CASES = ROUTE_CASES.filter(({ route }) => route !== '/readiness');
+
 describe('placeholder routes', () => {
   it.each(ROUTE_CASES)('renders $route inside PageShell without crashing', ({ Component, hideNav }) => {
     expect(() => {
@@ -41,7 +43,7 @@ describe('placeholder routes', () => {
     }).not.toThrow();
   });
 
-  it.each(ROUTE_CASES)(
+  it.each(PLACEHOLDER_ROUTE_CASES)(
     'renders $route with stable placeholder heading and marker',
     ({ Component, heading }) => {
       render(<Component />);
