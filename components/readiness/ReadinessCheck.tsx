@@ -1,14 +1,16 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Button } from '@/components/ui/Button';
+import { AuthGate } from '@/components/readiness/AuthGate';
 import { ProgressBar } from '@/components/readiness/ProgressBar';
+import { Button } from '@/components/ui/Button';
 import {
   clearReadinessSessionStorage,
   generateReadinessSessionToken,
   readReadinessSessionStorage,
   writeReadinessSessionStorage
 } from '@/lib/readiness/session-token';
+import { createClient } from '@/lib/supabase/client';
 
 type ReadinessQuestionOption = {
   id: string;
@@ -65,11 +67,53 @@ type ReadinessAnswerResponse = {
 };
 
 type BootstrapMode = 'loading' | 'ready' | 'prompt' | 'error';
+type ReadinessAuthStage = 'summary' | 'gate' | 'handoff';
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const SAFE_ERROR_MESSAGE = "We're unable to load the readiness check right now. Please try again.";
 const SAFE_ANSWER_ERROR_MESSAGE = "We couldn't save that answer right now. Please try again.";
+const SAFE_AUTH_ERROR_MESSAGE = "We couldn't finish signing you in. Please try again.";
 const HEX_DIGITS = '0123456789abcdef';
+const AUTH_SUCCESS_VALUES = new Set(['1', 'true', 'authenticated', 'complete', 'success']);
+
+function getReadinessAuthRedirectTo(): string {
+  if (typeof window === 'undefined') {
+    return '/auth/callback?next=/readiness/result';
+  }
+
+  return `${window.location.origin}/auth/callback?next=/readiness/result`;
+}
+
+function getInitialAuthStage(): ReadinessAuthStage {
+  if (typeof window === 'undefined') {
+    return 'summary';
+  }
+
+  const searchParams = new URLSearchParams(window.location.search);
+  const authState = searchParams.get('auth') ?? searchParams.get('authenticated');
+  if (authState && AUTH_SUCCESS_VALUES.has(authState.toLowerCase())) {
+    return 'handoff';
+  }
+
+  if (searchParams.get('error') === 'auth_failed') {
+    return 'gate';
+  }
+
+  return 'summary';
+}
+
+function getInitialAuthErrorMessage(): string | null {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+
+  const searchParams = new URLSearchParams(window.location.search);
+  if (searchParams.get('error') === 'auth_failed') {
+    return SAFE_AUTH_ERROR_MESSAGE;
+  }
+
+  return null;
+}
 
 function getProgressQuestionIndex(currentQuestionIndex: number, questionCount: number): number {
   if (questionCount <= 0) {
@@ -131,6 +175,9 @@ export function ReadinessCheck() {
   const [hasConfirmedAnswer, setHasConfirmedAnswer] = useState(false);
   const [isResultsReady, setIsResultsReady] = useState(false);
   const [answerErrorMessage, setAnswerErrorMessage] = useState<string | null>(null);
+  const [authStage, setAuthStage] = useState<ReadinessAuthStage>(getInitialAuthStage);
+  const [authGateErrorMessage, setAuthGateErrorMessage] = useState<string | null>(getInitialAuthErrorMessage);
+  const [isAuthSubmitting, setIsAuthSubmitting] = useState(false);
 
   useEffect(() => {
     let isActive = true;
@@ -316,6 +363,25 @@ export function ReadinessCheck() {
     setIsResultsReady(sessionState.status === 'completed');
   }, [bootstrapMode, questionSet, sessionState?.sessionToken]);
 
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    const searchParams = new URLSearchParams(window.location.search);
+    const authState = searchParams.get('auth') ?? searchParams.get('authenticated');
+    if (authState && AUTH_SUCCESS_VALUES.has(authState.toLowerCase())) {
+      setAuthStage('handoff');
+      setAuthGateErrorMessage(null);
+      return;
+    }
+
+    if (searchParams.get('error') === 'auth_failed') {
+      setAuthStage('gate');
+      setAuthGateErrorMessage(SAFE_AUTH_ERROR_MESSAGE);
+    }
+  }, []);
+
   async function restartSession() {
     setIsRestarting(true);
 
@@ -352,6 +418,8 @@ export function ReadinessCheck() {
       setHasConfirmedAnswer(false);
       setIsResultsReady(false);
       setAnswerErrorMessage(null);
+      setAuthStage('summary');
+      setAuthGateErrorMessage(null);
     } catch {
       setBootstrapErrorMessage(SAFE_ERROR_MESSAGE);
       setQuestionSet(null);
@@ -416,6 +484,8 @@ export function ReadinessCheck() {
         setSelectedOptionId(null);
         setHasConfirmedAnswer(false);
         setIsResultsReady(true);
+        setAuthStage('summary');
+        setAuthGateErrorMessage(null);
         return;
       }
 
@@ -441,6 +511,47 @@ export function ReadinessCheck() {
     setSelectedOptionId(null);
     setHasConfirmedAnswer(false);
     setAnswerErrorMessage(null);
+  }
+
+  async function handleLinkedInAuth() {
+    setIsAuthSubmitting(true);
+
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'linkedin_oidc',
+        options: {
+          redirectTo: getReadinessAuthRedirectTo(),
+          scopes: 'openid profile email'
+        }
+      });
+
+      if (error) {
+        throw error;
+      }
+    } finally {
+      setIsAuthSubmitting(false);
+    }
+  }
+
+  async function handleEmailAuth(email: string) {
+    setIsAuthSubmitting(true);
+
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+          emailRedirectTo: getReadinessAuthRedirectTo()
+        }
+      });
+
+      if (error) {
+        throw error;
+      }
+    } finally {
+      setIsAuthSubmitting(false);
+    }
   }
 
   if (bootstrapMode === 'loading' || (bootstrapMode === 'ready' && !questionSet)) {
@@ -525,19 +636,26 @@ export function ReadinessCheck() {
     );
   }
 
-  if (isResultsReady) {
+  if (isResultsReady && authStage === 'handoff') {
     return (
-      <section className="mx-auto w-full max-w-content px-4 pb-12 pt-6 sm:px-6 lg:px-8">
-        <div className="rounded-content border border-border-default bg-bg-surface/95 p-6 shadow-card sm:p-8">
-          <div className="space-y-3">
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-text-muted">AI Readiness Check</p>
-            <h1 className="text-h2 font-bold text-text-primary">Your results are ready</h1>
-            <p className="text-sm leading-6 text-text-secondary">
-              We&apos;ve captured your answers. Your authenticated result view will arrive in the next slice.
-            </p>
-          </div>
-        </div>
-      </section>
+      <AuthGate
+        onLinkedIn={handleLinkedInAuth}
+        onEmail={handleEmailAuth}
+        isSubmitting={isAuthSubmitting}
+        errorMessage={authGateErrorMessage}
+        isAuthenticatedSession
+      />
+    );
+  }
+
+  if (isResultsReady && authStage === 'gate') {
+    return (
+      <AuthGate
+        onLinkedIn={handleLinkedInAuth}
+        onEmail={handleEmailAuth}
+        isSubmitting={isAuthSubmitting}
+        errorMessage={authGateErrorMessage}
+      />
     );
   }
 
@@ -569,7 +687,16 @@ export function ReadinessCheck() {
         ) : null}
 
         <div className="mt-8 space-y-6">
-          <p className="text-lg font-semibold leading-7 text-text-primary">{currentQuestion.text}</p>
+          {isResultsReady ? (
+            <div className="rounded-content border border-border-default bg-bg-primary/80 p-4">
+              <p className="text-sm font-medium text-text-primary">Your results are ready</p>
+              <p className="mt-2 text-sm leading-6 text-text-secondary">
+                Sign in to unlock the protected result view.
+              </p>
+            </div>
+          ) : (
+            <p className="text-lg font-semibold leading-7 text-text-primary">{currentQuestion.text}</p>
+          )}
           <ul className="flex flex-col gap-3">
             {currentQuestion.options.map((option) => {
               const isSelected = selectedOptionId === option.id;
@@ -594,16 +721,28 @@ export function ReadinessCheck() {
           </ul>
 
           <div className="flex justify-end">
-            <Button
-              onClick={() => {
-                handleAdvance();
-              }}
-              disabled={!hasConfirmedAnswer}
-              size="lg"
-              loading={isSubmittingAnswer && hasConfirmedAnswer}
-            >
-              Next
-            </Button>
+            {isResultsReady ? (
+              <Button
+                onClick={() => {
+                  setAuthStage('gate');
+                  setAuthGateErrorMessage(null);
+                }}
+                size="lg"
+              >
+                See my results
+              </Button>
+            ) : (
+              <Button
+                onClick={() => {
+                  handleAdvance();
+                }}
+                disabled={!hasConfirmedAnswer}
+                size="lg"
+                loading={isSubmittingAnswer && hasConfirmedAnswer}
+              >
+                Next
+              </Button>
+            )}
           </div>
         </div>
       </div>
