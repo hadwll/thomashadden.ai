@@ -7,6 +7,43 @@ type ParsedPayload = {
   forceReingest?: boolean;
 };
 
+const LEAK_PATTERNS = [
+  /\bstack\b/i,
+  /process\.env/i,
+  /\/home\//i,
+  /[A-Za-z]:\\/,
+  /\bat\s+\S+\.(ts|js):\d+/i
+];
+
+function hasLeakPattern(text: string): boolean {
+  return LEAK_PATTERNS.some((pattern) => pattern.test(text));
+}
+
+function sanitizeText(text: string, fallback: string): string {
+  const trimmed = text.trim();
+  if (trimmed.length === 0 || hasLeakPattern(trimmed)) {
+    return fallback;
+  }
+
+  return trimmed;
+}
+
+function sanitizeSummary(summary: Awaited<ReturnType<typeof runManualRAGIngest>>) {
+  return {
+    ...summary,
+    errors: summary.errors.map((entry) => {
+      const nextMessage = sanitizeText(entry.message, 'Ingest step failed.');
+      const nextSourceFile =
+        entry.sourceFile && !hasLeakPattern(entry.sourceFile) ? entry.sourceFile.trim() || undefined : undefined;
+
+      return {
+        ...(nextSourceFile ? { sourceFile: nextSourceFile } : {}),
+        message: nextMessage
+      };
+    })
+  };
+}
+
 function createMeta() {
   const requestId =
     typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
@@ -100,7 +137,7 @@ export async function POST(request: NextRequest) {
     const summary = await runManualRAGIngest(
       parsed.forceReingest !== undefined ? { forceReingest: parsed.forceReingest } : undefined
     );
-    return ok(summary);
+    return ok(sanitizeSummary(summary));
   } catch {
     return error(500, 'RAG_ERROR', 'RAG ingest pipeline failed.');
   }

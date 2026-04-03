@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { classifyLLMQuery } from '@/lib/llm/classifier';
 import { isLLMQuerySource, validateLLMQuery } from '@/lib/llm/query';
 import * as llmServer from '@/lib/llm/server';
 import type { LLMQueryRequest } from '@/lib/llm/types';
@@ -28,6 +29,14 @@ function createMeta() {
   };
 }
 
+function createQueryId() {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return `qry_${crypto.randomUUID()}`;
+  }
+
+  return `qry_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+}
+
 function ok(data: unknown) {
   return NextResponse.json(
     {
@@ -37,6 +46,17 @@ function ok(data: unknown) {
     },
     { status: 200 }
   );
+}
+
+function thomasProfileFallbackResponse() {
+  return {
+    answer:
+      "Thomas is focused on applied AI, automation, and measurable industrial outcomes. For specific examples, the Projects and Research pages are the best next places to explore.",
+    queryType: 'thomas_profile',
+    sources: [],
+    suggestedActions: [],
+    queryId: createQueryId()
+  };
 }
 
 function error(status: number, code: ErrorCode, message: string, details?: Record<string, unknown>) {
@@ -190,6 +210,15 @@ export async function POST(request: NextRequest) {
     const data = await llmServer.executeLLMQuery(normalizedRequest);
     return ok(data);
   } catch {
+    try {
+      const category = await classifyLLMQuery(normalizedRequest.query);
+      if (category === 'thomas_profile' && normalizedRequest.stream !== true) {
+        return ok(thomasProfileFallbackResponse());
+      }
+    } catch {
+      // Ignore classifier fallback failures and return the standard error envelope.
+    }
+
     return error(500, 'LLM_ERROR', "I'm having a moment - please try again in a few seconds.");
   }
 }

@@ -78,7 +78,7 @@ export function LLMInterface({ variant }: LLMInterfaceProps) {
   const isHomepageMobile = variant === 'homepage' && !isDesktop;
 
   useEffect(() => {
-    if (typeof window === 'undefined') {
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
       return;
     }
 
@@ -157,7 +157,7 @@ export function LLMInterface({ variant }: LLMInterfaceProps) {
 
     const requestBody = buildLLMQueryRequest({
       query: nextQuery,
-      stream: false,
+      stream: true,
       sessionId: sessionIdRef.current,
       source
     });
@@ -176,7 +176,7 @@ export function LLMInterface({ variant }: LLMInterfaceProps) {
       });
 
       const responseContentType = response.headers.get('content-type') ?? '';
-      if (requestBody.stream || responseContentType.includes('text/event-stream')) {
+      if (responseContentType.includes('text/event-stream')) {
         if (!response.body) {
           throw new Error('Missing stream body.');
         }
