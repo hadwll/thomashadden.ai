@@ -35,6 +35,12 @@ type ResultViewState =
       result: ReadinessResultData;
     }
   | {
+      status: 'auth-missing';
+      message: string;
+      actionLabel: string;
+      actionHref: string;
+    }
+  | {
       status: 'error';
       message: string;
       actionLabel: string;
@@ -105,10 +111,12 @@ function getFriendlyErrorMessage(status: number, phase: 'link' | 'result'): { me
 function ResultError({
   message,
   actionLabel,
+  actionHref,
   onRestart
 }: {
   message: string;
   actionLabel: string;
+  actionHref?: string;
   onRestart: () => void;
 }) {
   return (
@@ -117,7 +125,13 @@ function ResultError({
       <h1 className="mt-3 text-h2 font-bold text-text-primary">Your results could not be loaded</h1>
       <p className="mt-3 max-w-2xl text-sm leading-6 text-text-secondary">{message}</p>
       <div className="mt-6">
-        <Button variant="primary" size="lg" fullWidth onClick={onRestart}>
+        <Button
+          variant="primary"
+          size="lg"
+          fullWidth
+          href={actionHref}
+          onClick={actionHref ? undefined : onRestart}
+        >
           {actionLabel}
         </Button>
       </div>
@@ -210,11 +224,11 @@ export function ResultScreen() {
       }
 
       if (!session || !session.access_token || !session.user?.id) {
-        router.push('/readiness');
         setViewState({
-          status: 'error',
+          status: 'auth-missing',
           message: SAFE_AUTH_ERROR,
-          actionLabel: 'Back to assessment start'
+          actionLabel: 'Back to assessment start',
+          actionHref: '/readiness'
         });
         return;
       }
@@ -301,7 +315,7 @@ export function ResultScreen() {
     return () => {
       isActive = false;
     };
-  }, [router]);
+  }, []);
 
   function restartAssessment() {
     clearReadinessSessionStorage();
@@ -322,6 +336,15 @@ export function ResultScreen() {
 
       {viewState.status === 'error' ? (
         <ResultError message={viewState.message} actionLabel={viewState.actionLabel} onRestart={restartAssessment} />
+      ) : null}
+
+      {viewState.status === 'auth-missing' ? (
+        <ResultError
+          message={viewState.message}
+          actionLabel={viewState.actionLabel}
+          actionHref={viewState.actionHref}
+          onRestart={restartAssessment}
+        />
       ) : null}
 
       {viewState.status === 'ready' ? (
