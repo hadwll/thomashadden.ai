@@ -275,7 +275,7 @@ Submit a query to the LLM. Supports both streaming and non-streaming responses.
       {
         "type": "readiness_check",
         "label": "Take the AI Readiness Check",
-        "url": "/readiness-check"
+        "url": "/readiness"
       }
     ],
     "queryId": "qry_abc123"
