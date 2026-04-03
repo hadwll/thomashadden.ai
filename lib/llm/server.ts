@@ -1,4 +1,5 @@
 import { classifyLLMQuery } from '@/lib/llm/classifier';
+import { createSSEChunkEvent, createSSEDoneEvent } from '@/lib/llm/sse';
 import type { LLMQueryRequest, LLMQueryResponse } from '@/lib/llm/types';
 
 function createQueryId() {
@@ -76,4 +77,31 @@ export async function executeLLMQuery(request: LLMQueryRequest): Promise<LLMQuer
         queryId
       };
   }
+}
+
+export async function streamLLMQuery(request: LLMQueryRequest): Promise<ReadableStream<Uint8Array>> {
+  const normalizedQuery = request.query.trim();
+  const queryId = 'qry_stream_stub';
+  const encoder = new TextEncoder();
+
+  const chunkEvent = createSSEChunkEvent({
+    chunk: `Streaming response placeholder for: ${normalizedQuery}`,
+    queryId
+  });
+
+  const doneEvent = createSSEDoneEvent({
+    done: true,
+    queryType: 'general_ai',
+    sources: [],
+    suggestedActions: [],
+    queryId
+  });
+
+  return new ReadableStream<Uint8Array>({
+    start(controller) {
+      controller.enqueue(encoder.encode(chunkEvent));
+      controller.enqueue(encoder.encode(doneEvent));
+      controller.close();
+    }
+  });
 }

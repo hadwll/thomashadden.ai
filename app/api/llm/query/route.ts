@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { isLLMQuerySource, validateLLMQuery } from '@/lib/llm/query';
-import { executeLLMQuery } from '@/lib/llm/server';
+import * as llmServer from '@/lib/llm/server';
 import type { LLMQueryRequest } from '@/lib/llm/types';
 
 type ErrorCode = 'VALIDATION_ERROR' | 'LLM_ERROR';
@@ -174,7 +174,20 @@ export async function POST(request: NextRequest) {
   };
 
   try {
-    const data = await executeLLMQuery(normalizedRequest);
+    if (normalizedRequest.stream === true) {
+      const stream = await llmServer.streamLLMQuery(normalizedRequest);
+
+      return new Response(stream, {
+        status: 200,
+        headers: {
+          'Content-Type': 'text/event-stream',
+          'Cache-Control': 'no-cache',
+          Connection: 'keep-alive'
+        }
+      });
+    }
+
+    const data = await llmServer.executeLLMQuery(normalizedRequest);
     return ok(data);
   } catch {
     return error(500, 'LLM_ERROR', "I'm having a moment - please try again in a few seconds.");
