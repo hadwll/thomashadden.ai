@@ -1,6 +1,8 @@
 import { classifyLLMQuery } from '@/lib/llm/classifier';
 import { createSSEChunkEvent, createSSEDoneEvent } from '@/lib/llm/sse';
 import type { LLMQueryRequest, LLMQueryResponse } from '@/lib/llm/types';
+import { assembleRAGContext, mapRAGSources } from '@/lib/rag/context-assembly';
+import { retrieveRelevantRAGChunks } from '@/lib/rag/retrieval';
 
 function createQueryId() {
   if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
@@ -15,6 +17,37 @@ const READINESS_ACTION = {
   label: 'Take the AI Readiness Check',
   url: '/readiness'
 } as const;
+
+const MAX_THOMAS_ANSWER_LENGTH = 600;
+
+function boundedAnswer(answer: string): string {
+  const trimmed = answer.trim();
+  if (trimmed.length <= MAX_THOMAS_ANSWER_LENGTH) {
+    return trimmed;
+  }
+
+  return `${trimmed.slice(0, MAX_THOMAS_ANSWER_LENGTH - 1).trimEnd()}…`;
+}
+
+function buildThomasProfileAnswer(input: {
+  contextBlock: string;
+  sourceCount: number;
+  topSection: string | null;
+}): string {
+  if (input.contextBlock.trim().length === 0 || input.sourceCount === 0) {
+    return boundedAnswer(
+      "Thomas is focused on applied AI, automation, and measurable industrial outcomes. For specific examples, the Projects and Research pages are the best next places to explore."
+    );
+  }
+
+  const sectionPhrase = input.topSection?.trim().length
+    ? `, with recent emphasis on ${input.topSection?.trim().toLowerCase()},`
+    : '';
+
+  return boundedAnswer(
+    `Thomas is currently focused on practical AI delivery for engineering and operations${sectionPhrase} combining implementation work with research into measurable business impact. The linked sources below highlight the most relevant current context.`
+  );
+}
 
 export async function executeLLMQuery(request: LLMQueryRequest): Promise<LLMQueryResponse> {
   const normalizedQuery = request.query.trim();
@@ -32,14 +65,35 @@ export async function executeLLMQuery(request: LLMQueryRequest): Promise<LLMQuer
         queryId
       };
     case 'thomas_profile':
-      return {
-        answer:
-          'Thomas focuses on applied AI, automation, and industrial systems, with practical work centered on turning operational problems into measurable improvements.',
-        queryType: 'thomas_profile',
-        sources: [],
-        suggestedActions: [],
-        queryId
-      };
+      try {
+        const retrievedChunks = await retrieveRelevantRAGChunks({
+          query: normalizedQuery
+        });
+        const ragContext = assembleRAGContext(retrievedChunks);
+        const sources = mapRAGSources(retrievedChunks);
+
+        return {
+          answer: buildThomasProfileAnswer({
+            contextBlock: ragContext,
+            sourceCount: sources.length,
+            topSection: retrievedChunks[0]?.sectionHeading ?? null
+          }),
+          queryType: 'thomas_profile',
+          sources,
+          suggestedActions: [],
+          queryId
+        };
+      } catch {
+        return {
+          answer: boundedAnswer(
+            "Thomas is focused on applied AI, automation, and measurable industrial outcomes. For specific examples, the Projects and Research pages are the best next places to explore."
+          ),
+          queryType: 'thomas_profile',
+          sources: [],
+          suggestedActions: [],
+          queryId
+        };
+      }
     case 'readiness_check':
       return {
         answer:
