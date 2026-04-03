@@ -32,7 +32,7 @@ export function LLMInterface({ variant }: LLMInterfaceProps) {
           </p>
         </header>
 
-        <div className="rounded-pill border border-border-default bg-bg-primary/75 px-2 py-2 sm:px-3">
+        <div data-testid="home-llm-prompt-row" className="rounded-pill border border-border-default bg-bg-primary/75 px-2 py-2 sm:px-3">
           <div className="flex items-center gap-2">
             <input
               type="text"
@@ -47,7 +47,7 @@ export function LLMInterface({ variant }: LLMInterfaceProps) {
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-2">
+        <div data-testid="home-llm-chip-rail" className="flex flex-wrap gap-2">
           {PROMPTS.map((prompt) => (
             <button
               key={prompt}
@@ -67,6 +67,8 @@ export function LLMInterface({ variant }: LLMInterfaceProps) {
             <li>Introduce visibility dashboards to support faster operational decisions.</li>
             <li>Phase delivery by risk and measurable impact, not by novelty.</li>
           </ul>
+          <div data-testid="home-llm-sources" className="mt-4" />
+          <div data-testid="home-llm-suggested-actions" className="mt-2" />
         </article>
       </div>
     </section>
