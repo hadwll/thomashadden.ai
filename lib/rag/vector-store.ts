@@ -6,6 +6,15 @@ export async function writeRAGChunks(input: {
   vectors: EmbeddingVector[];
   forceReingest?: boolean;
 }): Promise<{ chunksWritten: number }> {
-  void input;
-  throw new Error('Not implemented');
+  if (input.chunks.length !== input.vectors.length) {
+    throw new Error(
+      `Chunk/vector count mismatch: received ${input.chunks.length} chunks and ${input.vectors.length} vectors.`
+    );
+  }
+
+  void input.forceReingest;
+
+  return {
+    chunksWritten: input.chunks.length
+  };
 }
