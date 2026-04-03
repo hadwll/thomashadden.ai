@@ -1,10 +1,10 @@
 import { PageShell } from '@/components/layout/PageShell';
-import { RoutePlaceholder } from '@/components/layout/RoutePlaceholder';
+import { ResultScreen } from '@/components/readiness/ResultScreen';
 
 export default function ReadinessResultPage() {
   return (
     <PageShell>
-      <RoutePlaceholder title="Readiness Result" route="/readiness/result" />
+      <ResultScreen />
     </PageShell>
   );
 }
