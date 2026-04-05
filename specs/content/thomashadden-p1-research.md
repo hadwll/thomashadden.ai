@@ -81,4 +81,4 @@ The PhD is supervised at Ulster University, with regular supervisory meetings, p
 
 ---
 
-*thomashadden.ai | Industrial Analytics & Automation | P1 Research Content v1.0*
+*thomashadden.ai | Industrial Analytics & Automation | P1 Research Content v1.0*q

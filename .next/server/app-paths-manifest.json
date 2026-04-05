@@ -1,0 +1,14 @@
+{
+  "/page": "app/page.js",
+  "/projects/page": "app/projects/page.js",
+  "/projects/[slug]/page": "app/projects/[slug]/page.js",
+  "/api/llm/query/route": "app/api/llm/query/route.js",
+  "/readiness/page": "app/readiness/page.js",
+  "/api/readiness-check/questions/route": "app/api/readiness-check/questions/route.js",
+  "/api/readiness-check/session/[token]/route": "app/api/readiness-check/session/[token]/route.js",
+  "/api/readiness-check/session/route": "app/api/readiness-check/session/route.js",
+  "/cookies/page": "app/cookies/page.js",
+  "/privacy/page": "app/privacy/page.js",
+  "/api/readiness-check/answer/route": "app/api/readiness-check/answer/route.js",
+  "/contact/page": "app/contact/page.js"
+}
