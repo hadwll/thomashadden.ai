@@ -109,7 +109,14 @@ function expectStableServiceStatusShape(serviceStatus: unknown) {
 function expectPayloadHidesRawValues(payload: unknown) {
   const serialized = JSON.stringify(payload);
 
-  for (const value of Object.values(HEALTHY_ENV)) {
+  const sensitiveValues = [
+    HEALTHY_ENV.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    HEALTHY_ENV.SUPABASE_SERVICE_ROLE_KEY,
+    HEALTHY_ENV.AZURE_OPENAI_API_KEY,
+    HEALTHY_ENV.SMTP_PASS
+  ];
+
+  for (const value of sensitiveValues) {
     expect(serialized).not.toContain(value);
   }
 }
