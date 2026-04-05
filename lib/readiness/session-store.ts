@@ -64,10 +64,18 @@ export type ReadinessAnswerWriteResult =
       session: null;
     };
 
-const readinessSessionStore = new Map<string, ReadinessSessionRecord>();
-const globalForTestCleanup = globalThis as typeof globalThis & {
+const globalForReadiness = globalThis as typeof globalThis & {
+  __readinessSessionStore__?: Map<string, ReadinessSessionRecord>;
   __readinessSessionStoreCleanupRegistered__?: boolean;
 };
+
+// Route handlers are bundled separately, so the store must live on `globalThis`
+// to stay visible across `/session`, `/answer`, `/result`, and auth-linking calls.
+const readinessSessionStore =
+  globalForReadiness.__readinessSessionStore__ ??
+  (globalForReadiness.__readinessSessionStore__ = new Map<string, ReadinessSessionRecord>());
+
+const globalForTestCleanup = globalForReadiness;
 
 if (process.env.NODE_ENV === 'test' && typeof afterEach === 'function' && !globalForTestCleanup.__readinessSessionStoreCleanupRegistered__) {
   afterEach(() => {

@@ -384,7 +384,7 @@ describe('ReadinessCheck flow UI contract', () => {
 
     expect(screen.getByText(/your results are ready/i)).toBeVisible();
     expect(screen.queryByText(READINESS_QUESTION_SET.questions[6].text)).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: /see my results/i })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /see my results/i })).toBeVisible();
     expect(screen.queryByRole('button', { name: /linkedin/i })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /email/i })).not.toBeInTheDocument();
   });

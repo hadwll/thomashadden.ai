@@ -38,9 +38,9 @@ function createCompletedReadinessSession() {
     success: true,
     data: {
       sessionToken: COMPLETED_SESSION_TOKEN,
-      status: 'completed' as const,
-      answeredQuestions: [0, 1, 2, 3, 4, 5, 6],
-      nextQuestionIndex: 7,
+      status: 'in_progress' as const,
+      answeredQuestions: [0, 1, 2, 3, 4, 5],
+      nextQuestionIndex: 6,
       totalQuestions: 7
     }
   };
@@ -65,6 +65,16 @@ function installCompletedReadinessFetchMock() {
 
     if (url.includes('/api/readiness-check/session/') && method === 'GET') {
       return jsonResponse(createCompletedReadinessSession());
+    }
+
+    if (url.endsWith('/api/readiness-check/answer') && method === 'POST') {
+      return jsonResponse({
+        success: true,
+        data: {
+          answeredCount: 7,
+          isComplete: true
+        }
+      });
     }
 
     throw new Error(`Unexpected fetch call: ${method} ${url}`);
@@ -104,6 +114,8 @@ describe('readiness auth gate UI contract', () => {
     render(<ReadinessCheck />);
 
     await screen.findByText(READINESS_QUESTION_SET.questions[6].text);
+    await user.click(screen.getByRole('button', { name: READINESS_QUESTION_SET.questions[6].options[0].label }));
+    await screen.findByText(/your results are ready/i);
     await user.click(screen.getByRole('button', { name: /see my results/i }));
 
     expect(screen.getByText(/sign in to see your results/i)).toBeVisible();

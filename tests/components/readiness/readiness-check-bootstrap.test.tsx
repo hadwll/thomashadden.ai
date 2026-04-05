@@ -100,6 +100,21 @@ function createQuestionSetResponse() {
   };
 }
 
+function createSessionCreateResponse(sessionToken = '11111111-1111-4111-8111-111111111111') {
+  return {
+    success: true,
+    data: {
+      sessionToken,
+      status: 'in_progress' as const,
+      totalQuestions: 7
+    },
+    meta: {
+      requestId: 'req_readiness_session_create_001',
+      timestamp: '2026-04-03T12:00:00.000Z'
+    }
+  };
+}
+
 describe('ReadinessCheck bootstrap', () => {
   const fetchMock = vi.fn<(input: RequestInfo | URL, init?: RequestInit) => Promise<Response>>();
 
@@ -117,20 +132,37 @@ describe('ReadinessCheck bootstrap', () => {
     const deferred = createDeferred<Response>();
 
     fetchMock.mockReturnValueOnce(deferred.promise);
+    fetchMock.mockResolvedValueOnce(
+      new Response(JSON.stringify(createSessionCreateResponse()), {
+        status: 200,
+        headers: {
+          'content-type': 'application/json'
+        }
+      })
+    );
 
     render(<ReadinessCheck />);
 
     await waitFor(() => {
-      expect(fetchMock).toHaveBeenCalledTimes(1);
+      expect(fetchMock).toHaveBeenCalledTimes(2);
     });
 
     expect(fetchMock.mock.calls[0]?.[0]).toBe('/api/readiness-check/questions');
+    expect(fetchMock.mock.calls[1]?.[0]).toBe('/api/readiness-check/session');
     expect(screen.getByText(/loading/i)).toBeVisible();
   });
 
   it('renders the readiness heading, first question, summary, and first question options after a successful fetch', async () => {
     fetchMock.mockResolvedValueOnce(
       new Response(JSON.stringify(createQuestionSetResponse()), {
+        status: 200,
+        headers: {
+          'content-type': 'application/json'
+        }
+      })
+    );
+    fetchMock.mockResolvedValueOnce(
+      new Response(JSON.stringify(createSessionCreateResponse()), {
         status: 200,
         headers: {
           'content-type': 'application/json'

@@ -7,10 +7,12 @@ describe('getOrCreateLLMSession', () => {
   beforeEach(() => {
     sessionStorage.clear();
     vi.restoreAllMocks();
+    vi.unstubAllGlobals();
   });
 
   afterEach(() => {
     vi.restoreAllMocks();
+    vi.unstubAllGlobals();
   });
 
   it('returns an existing llm_session_id from sessionStorage without generating a new one', () => {
@@ -59,5 +61,19 @@ describe('getOrCreateLLMSession', () => {
     expect(secondCallResult).toBe('session-first');
     expect(sessionStorage.getItem(SESSION_STORAGE_KEY)).toBe('session-first');
     expect(randomUUIDSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('falls back to a UUID-shaped session id when crypto.randomUUID is unavailable', () => {
+    vi.stubGlobal('crypto', {
+      getRandomValues(bytes: Uint8Array) {
+        bytes.fill(2);
+        return bytes;
+      }
+    } as Crypto);
+
+    const sessionId = getOrCreateLLMSession();
+
+    expect(sessionId).toBe('02020202-0202-4202-8202-020202020202');
+    expect(sessionStorage.getItem(SESSION_STORAGE_KEY)).toBe(sessionId);
   });
 });
