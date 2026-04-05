@@ -7,12 +7,30 @@ export type ContactIdentity = {
   email: string;
 };
 
+export type ContactEnquiryType =
+  | 'business_enquiry'
+  | 'research_collaboration'
+  | 'technical_enquiry'
+  | 'general';
+
 export type ContactFormState = {
   name: string;
   email: string;
   subject: string;
-  enquiryType: string;
+  enquiryType: ContactEnquiryType;
   message: string;
+};
+
+export type ContactSubmitSource = 'contact_page' | 'readiness_check' | 'llm';
+
+export type ContactSubmitPayload = {
+  name: string;
+  email: string;
+  subject?: string;
+  message?: string;
+  type: ContactEnquiryType;
+  source?: ContactSubmitSource;
+  honeypot: string;
 };
 
 export type ReadinessResultLabel = 'Early-Stage' | 'Foundational' | 'Ready to Pilot' | 'Ready to Scale';
@@ -21,7 +39,7 @@ export const READINESS_CONTEXT_SOURCE = 'readiness_check';
 export const READINESS_SUBJECT = 'AI Readiness follow-up';
 export const READINESS_ENQUIRY_TYPE = 'business_enquiry';
 export const GENERAL_SUBJECT = 'General enquiry';
-export const GENERAL_ENQUIRY_TYPE = 'general_enquiry';
+export const GENERAL_ENQUIRY_TYPE = 'general';
 
 export const READINESS_RESULT_LABELS: Record<string, ReadinessResultLabel> = {
   early_stage: 'Early-Stage',
@@ -92,6 +110,43 @@ export function buildInitialFormState(source: string): ContactFormState {
     enquiryType: GENERAL_ENQUIRY_TYPE,
     message: ''
   };
+}
+
+function isContactSubmitSource(source: string): source is ContactSubmitSource {
+  return source === 'contact_page' || source === 'readiness_check' || source === 'llm';
+}
+
+export function buildContactSubmitPayload({
+  formState,
+  source,
+  honeypot
+}: {
+  formState: ContactFormState;
+  source: string;
+  honeypot: string;
+}): ContactSubmitPayload {
+  const payload: ContactSubmitPayload = {
+    name: formState.name,
+    email: formState.email,
+    type: formState.enquiryType,
+    honeypot
+  };
+
+  const subject = formState.subject.trim();
+  if (subject.length > 0) {
+    payload.subject = subject;
+  }
+
+  const message = formState.message.trim();
+  if (message.length > 0) {
+    payload.message = message;
+  }
+
+  if (source.length > 0 && isContactSubmitSource(source)) {
+    payload.source = source;
+  }
+
+  return payload;
 }
 
 export function splitParagraphs(summary: string): string[] {

@@ -1,16 +1,13 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState, type Dispatch, type SetStateAction } from 'react';
+import { useEffect, useState } from 'react';
+import ContactForm from '@/components/contact/ContactForm';
 import { PageShell } from '@/components/layout/PageShell';
 import {
   buildInitialFormState,
   CONTACT_FALLBACK_INTRO,
-  getResultLabel,
   loadAuthenticatedContactIdentity,
-  READINESS_CONTEXT_SOURCE,
-  READINESS_ENQUIRY_TYPE,
-  GENERAL_ENQUIRY_TYPE,
   type ContactFormState,
   type ContactIdentity
 } from './contact-helpers';
@@ -21,143 +18,6 @@ type ContactPageClientProps = {
   initialIdentity: ContactIdentity | null;
   introParagraphs: string[];
 };
-
-function ContactForm({
-  source,
-  result,
-  formState,
-  setFormState
-}: {
-  source: string;
-  result: string;
-  formState: ContactFormState;
-  setFormState: Dispatch<SetStateAction<ContactFormState>>;
-}) {
-  const resultLabel = getResultLabel(result);
-  const isReadinessContext = source === READINESS_CONTEXT_SOURCE;
-
-  return (
-    <form data-testid="contact-form-shell" className="mt-4 space-y-4" aria-label="Contact form">
-      <input type="hidden" name="source" value={source} />
-
-      {isReadinessContext ? (
-        <div className="rounded-content border border-border-default bg-bg-primary/80 p-4 text-sm leading-6 text-text-secondary">
-          {resultLabel ? (
-            <p>
-              You came here from your {resultLabel} readiness result. Share a few details below and we&apos;ll keep the
-              conversation moving from there.
-            </p>
-          ) : (
-            <p>
-              You came here from your readiness result. Share a few details below and we&apos;ll keep the conversation
-              moving from there.
-            </p>
-          )}
-        </div>
-      ) : null}
-
-      <div>
-        <label htmlFor="contact-name" className="mb-1 block text-sm text-text-secondary">
-          Name
-        </label>
-        <input
-          id="contact-name"
-          name="name"
-          type="text"
-          autoComplete="name"
-          value={formState.name}
-          onChange={(event) => {
-            setFormState((previous) => ({
-              ...previous,
-              name: event.target.value
-            }));
-          }}
-          className="w-full rounded-control border border-border-default bg-bg-primary px-3 py-2 text-sm text-text-primary"
-        />
-      </div>
-
-      <div>
-        <label htmlFor="contact-email" className="mb-1 block text-sm text-text-secondary">
-          Email
-        </label>
-        <input
-          id="contact-email"
-          name="email"
-          type="email"
-          autoComplete="email"
-          value={formState.email}
-          onChange={(event) => {
-            setFormState((previous) => ({
-              ...previous,
-              email: event.target.value
-            }));
-          }}
-          className="w-full rounded-control border border-border-default bg-bg-primary px-3 py-2 text-sm text-text-primary"
-        />
-      </div>
-
-      <div>
-        <label htmlFor="contact-subject" className="mb-1 block text-sm text-text-secondary">
-          Subject
-        </label>
-        <input
-          id="contact-subject"
-          name="subject"
-          type="text"
-          value={formState.subject}
-          onChange={(event) => {
-            setFormState((previous) => ({
-              ...previous,
-              subject: event.target.value
-            }));
-          }}
-          className="w-full rounded-control border border-border-default bg-bg-primary px-3 py-2 text-sm text-text-primary"
-        />
-      </div>
-
-      <div>
-        <label htmlFor="contact-enquiry-type" className="mb-1 block text-sm text-text-secondary">
-          Enquiry type
-        </label>
-        <select
-          id="contact-enquiry-type"
-          name="enquiryType"
-          value={formState.enquiryType}
-          onChange={(event) => {
-            setFormState((previous) => ({
-              ...previous,
-              enquiryType: event.target.value
-            }));
-          }}
-          className="w-full rounded-control border border-border-default bg-bg-primary px-3 py-2 text-sm text-text-primary"
-        >
-          <option value={GENERAL_ENQUIRY_TYPE}>General enquiry</option>
-          <option value={READINESS_ENQUIRY_TYPE}>Business enquiry</option>
-          <option value="technical_enquiry">Technical enquiry</option>
-        </select>
-      </div>
-
-      <div>
-        <label htmlFor="contact-message" className="mb-1 block text-sm text-text-secondary">
-          Message
-        </label>
-        <textarea
-          id="contact-message"
-          name="message"
-          rows={5}
-          value={formState.message}
-          onChange={(event) => {
-            setFormState((previous) => ({
-              ...previous,
-              message: event.target.value
-            }));
-          }}
-          className="w-full rounded-control border border-border-default bg-bg-primary px-3 py-2 text-sm text-text-primary"
-        />
-      </div>
-    </form>
-  );
-}
 
 function ContactPageShell({
   source,
