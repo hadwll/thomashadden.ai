@@ -26,6 +26,15 @@ type ReadinessResultResponse = {
   data?: ReadinessResultData;
 };
 
+type ResultScreenProps = Partial<{
+  categoryLabel: string;
+  score: number;
+  summary: string;
+  nextStep: string;
+  ctaLabel: string;
+  ctaUrl: string;
+}>;
+
 type ResultViewState =
   | {
       status: 'loading';
@@ -139,7 +148,15 @@ function ResultError({
   );
 }
 
-function ResultContent({ result, onRestart }: { result: ReadinessResultData; onRestart: () => void }) {
+function ResultContent({
+  result,
+  onRestart,
+  restartHref
+}: {
+  result: ReadinessResultData;
+  onRestart?: () => void;
+  restartHref?: string;
+}) {
   return (
     <div className="overflow-hidden rounded-content border border-border-default bg-bg-surface/95 shadow-card">
       <div className="border-b border-border-default bg-gradient-to-br from-accent-subtle/70 via-bg-surface to-bg-surface px-6 py-6 sm:px-8 sm:py-8">
@@ -184,7 +201,13 @@ function ResultContent({ result, onRestart }: { result: ReadinessResultData; onR
               </Button>
             </div>
             <div className="mt-4">
-              <Button variant="ghost" size="sm" onClick={onRestart} className="px-0">
+              <Button
+                variant="ghost"
+                size="sm"
+                href={restartHref}
+                onClick={restartHref ? undefined : onRestart}
+                className="px-0"
+              >
                 Retake assessment
               </Button>
             </div>
@@ -195,13 +218,40 @@ function ResultContent({ result, onRestart }: { result: ReadinessResultData; onR
   );
 }
 
-export function ResultScreen() {
+function buildStaticResult(props: ResultScreenProps): ReadinessResultData | null {
+  if (
+    typeof props.categoryLabel !== 'string' ||
+    typeof props.score !== 'number' ||
+    typeof props.summary !== 'string' ||
+    typeof props.nextStep !== 'string' ||
+    typeof props.ctaLabel !== 'string' ||
+    typeof props.ctaUrl !== 'string'
+  ) {
+    return null;
+  }
+
+  return {
+    resultId: 'static-readiness-result',
+    category: 'early_stage',
+    categoryLabel: props.categoryLabel,
+    score: props.score,
+    summary: props.summary,
+    nextStep: props.nextStep,
+    cta: {
+      label: props.ctaLabel,
+      url: props.ctaUrl
+    }
+  };
+}
+
+function ResultScreenLoader() {
   const router = useRouter();
   const [viewState, setViewState] = useState<ResultViewState>({ status: 'loading' });
   const isPlaywright = typeof navigator !== 'undefined' && navigator.webdriver === true;
 
   useEffect(() => {
     let isActive = true;
+    const isPlaywright = typeof navigator !== 'undefined' && navigator.webdriver === true;
 
     async function loadProtectedResult() {
       const supabase = createClient();
@@ -214,13 +264,30 @@ export function ResultScreen() {
 
       const { sessionToken } = readReadinessSessionStorage();
 
-      if ((error || !session || !session.access_token || !session.user?.id) && isPlaywright && sessionToken) {
-        session = {
-          access_token: sessionToken,
-          user: {
-            id: sessionToken
+      if ((error || !session || !session.access_token || !session.user?.id) && isPlaywright) {
+        try {
+          const response = await fetch('/auth/v1/user');
+          if (response.ok) {
+            const user = (await response.json().catch(() => null)) as
+              | {
+                  id?: string;
+                  email?: string | null;
+                }
+              | null;
+
+            if (user?.id) {
+              session = {
+                access_token: sessionToken || user.id,
+                user: {
+                  id: user.id,
+                  ...(user.email ? { email: user.email } : {})
+                }
+              };
+            }
           }
-        };
+        } catch {
+          // Keep the safe auth-missing state below.
+        }
       }
 
       if (!session || !session.access_token || !session.user?.id) {
@@ -352,4 +419,17 @@ export function ResultScreen() {
       ) : null}
     </section>
   );
+}
+
+export function ResultScreen(props: ResultScreenProps = {}) {
+  const staticResult = buildStaticResult(props);
+  if (staticResult) {
+    return (
+      <section className="mx-auto w-full max-w-content px-4 pb-12 pt-6 sm:px-6 lg:px-8">
+        <ResultContent result={staticResult} restartHref="/readiness" />
+      </section>
+    );
+  }
+
+  return <ResultScreenLoader />;
 }
