@@ -281,9 +281,12 @@ describe('ReadinessCheck answer submission wiring', () => {
       expect(answerRequests).toHaveLength(1);
     });
 
-    await user.click(await screen.findByRole('button', { name: /see my results/i }));
-
     expect(screen.getByText(/your results are ready/i)).toBeVisible();
     expect(screen.queryByText(finalQuestion.text)).not.toBeInTheDocument();
+
+    await user.click(await screen.findByRole('button', { name: /see my results/i }));
+
+    expect(screen.getByText(/sign in to see your results/i)).toBeVisible();
+    expect(screen.getByText(/assessment is ready/i)).toBeVisible();
   });
 });
